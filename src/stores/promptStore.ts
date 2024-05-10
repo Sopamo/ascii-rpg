@@ -3,10 +3,11 @@ import { defineStore } from 'pinia'
 import Groq from 'groq-sdk'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useMapStore } from '@/stores/mapStore'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 async function getGroqChatCompletion(message: string, memory: string[], messageHistory: MessageHistoryEntry[]) {
   const groq = new Groq({
-    apiKey: import.meta.env.VITE_GROQ_API_KEY,
+    apiKey: useSettingsStore().getGroqApiKey(),
     dangerouslyAllowBrowser: true,
   });
   const inventory = usePlayerStore().inventoryString
