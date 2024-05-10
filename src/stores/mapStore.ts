@@ -5,10 +5,11 @@ function setCharAt(str: string,index: number,char: string) {
   if(index > str.length-1) return str;
   return str.substring(0,index) + char + str.substring(index+1);
 }
+export const specialThings = {
+  '1': 'Is an old grumpy woman, sitting on a bench. She is willing to give the player a rusty old sword, but only if they bring her a fish, caught from the lake. She doesnt really want to talk about all of that though, because the sword belongs to her missing husband.'
+}
 function getSpecialThings(mapData: string[]): string[] {
-  const specialThings = {
-    '1': 'Is an old grumpy woman, sitting on a bench. She is willing to give the player a rusty old sword, but only if they bring her a fish, caught from the lake. She doesnt really want to talk about all of that though, because the sword belongs to her missing husband.'
-  }
+
   const mapString = mapData.join("")
   const relevantThings: string[] = []
   Object.entries(specialThings).forEach(([key, thing]) => {
@@ -16,7 +17,6 @@ function getSpecialThings(mapData: string[]): string[] {
       relevantThings.push(`${key} ${thing}`)
     }
   })
-  console.log(relevantThings)
   return relevantThings
 }
 function getSurroundingCells(map: string[], x: number, y: number) {

@@ -3,7 +3,7 @@
   <div v-for="(row, rowIndex) in mapStore.mapRows" :key="rowIndex" class="s-row">
     <div :class="getClass(cell)" v-for="(cell, columnIndex) in row" class="s-cell" :key="columnIndex">
       <template v-if="columnIndex === playerStore.playerPosition[0] && rowIndex === playerStore.playerPosition[1]">x</template>
-      <template v-else>{{ cell }}</template>
+      <template v-else>{{ isSpecialThing(cell) ? '?' : cell }}</template>
     </div>
   </div>
 </div>
@@ -14,7 +14,7 @@
 import { onKeyStroke } from '@vueuse/core'
 import { usePromptStore } from '@/stores/promptStore'
 import { usePlayerStore } from '@/stores/playerStore'
-import { useMapStore } from '@/stores/mapStore'
+import { specialThings, useMapStore } from '@/stores/mapStore'
 
 const mapStore = useMapStore()
 const promptStore = usePromptStore()
@@ -32,6 +32,10 @@ function getClass(type: string) {
     return ''
   }
   return typeMap[type]
+}
+
+function isSpecialThing(char: string) {
+  return Object.keys(specialThings).includes(char)
 }
 
 function handleMapKeyInput(e, callback) {
