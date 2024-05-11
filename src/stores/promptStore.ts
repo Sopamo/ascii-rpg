@@ -4,6 +4,39 @@ import Groq from 'groq-sdk'
 import { usePlayerStore } from '@/stores/playerStore'
 import { useMapStore } from '@/stores/mapStore'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { format } from 'date-fns'
+
+function extractJson(str: string): any {
+    let stack = [];
+    let jsonStart = -1;
+    let jsonEnd = -1;
+
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === '{') {
+        if (stack.length === 0) {
+          jsonStart = i;
+        }
+        stack.push('{');
+      } else if (str[i] === '}') {
+        stack.pop();
+        if (stack.length === 0) {
+          jsonEnd = i;
+          break;
+        }
+      }
+    }
+
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      let jsonStr = str.substring(jsonStart, jsonEnd + 1);
+      try {
+        return JSON.parse(jsonStr);
+      } catch (e) {
+        return null; // or throw an error, depending on your use case
+      }
+    } else {
+      return null; // or throw an error, depending on your use case
+    }
+}
 
 async function getGroqChatCompletion(message: string, memory: string[], messageHistory: MessageHistoryEntry[]) {
   const groq = new Groq({
@@ -20,22 +53,23 @@ async function getGroqChatCompletion(message: string, memory: string[], messageH
   let lastSystemResponse = ''
   const lastSystemHistoryEntry = [...messageHistory].reverse().find(entry => entry.role==='system')
   if(lastSystemHistoryEntry) {
-    lastSystemResponse = "Last game master response: \n" + lastSystemHistoryEntry.content
+    lastSystemResponse = "Previous dungeon master message:: \n" + lastSystemHistoryEntry.content.narratorResponse
   }
   const completion = await groq.chat.completions.create({
     messages: [
       {
         role: "system",
-        content: `You are an rpg game master, that gets presented a map as ascii art and an action that the character wants to take.
-You respond with a short funny narrator like sentence that describes what happens. If you want, you can address the player with "you ...".
-You can use xml tags (described below) to do special things.
+        content: `You are a dungeon master, that gets presented a map as ascii art and an action that the character wants to take.
+You respond with json, that contains a short funny narrator like sentence that describes what happens in the field "narratorResponse". If you want, you can address the player with "you ...".
 Try to create an interesting story, don't just let everything the player tries to do succeed. The more plausible it is what they are trying to do, the more likely it is they should succeed. Generally, their success probability is: ${successProbability}
-Assume the player has no items apart from the ones in their inventory.
+Assume the player doesn't have access to any items, apart from the ones in their inventory and if realistically, the ones that were mentioned in the previous prompt. They can't just pick up/use things out of thin air!
 Never assume / say that the player has moved somewhere, they have to move themselves.
-If they really, really earned it, you can also give the player an item. Do so like this: <give-item>itemname</give-item>. If they didn't get an item, don't comment on it.
-If they used an item in a way that would remove it from their inventory / destroy it, add <remove-item>itemname</remove-item> to the response.
-If something noteworthy happened, provide an extremely short summary (few words) after the response that we should commit to memory for the long term game, like this: <memory>summary of user&system message</memory>
+Only if they really, really earned it, and the item was mentioned in the previous dungeon master's message, you can give the player an item via the inventory action in the json. If they didn't get an item, don't comment on it.
+If they used an item in a way that would consume it, or makes it not available to them anymore, remove it from their inventory, via the inventory action in the json.
+If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
+Estimate how much time has passed by doing whatever the player did and output that in the JSON in the "minutesPassed" key.
 Never respond with any of the map's ascii characters, the current inventory and never refer directly to the ascii map.
+If the player tries to pick up, or use in any way an item that is not mentioned, make them aware of the fact that they don't have that item.
 The ascii map is made out of these things:
 . is the default, empty floor
 : is impassable terrain
@@ -48,13 +82,17 @@ The ascii map is made out of these things:
 = is a table
 x is the player
 ${currentMapData.specialThings.join("\n")}
+Current time:
+${format(new Date(usePlayerStore().currentTime * 1000), 'hh:mm a')}
 Memory:
 ${memory.length ? memory.join("\n") : '-'}
 Current inventory:
 ${inventory}
 ${lastSystemResponse}
 Current map:
-${currentMapData.mapString}`
+${currentMapData.mapString}
+You respond only with valid json of this structure:
+{"narratorResponse":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]},"minutesPassed": 30}`
       },
       {
         role: "user",
@@ -63,12 +101,12 @@ ${currentMapData.mapString}`
     ],
     model: "llama3-70b-8192",
   });
-  return completion.choices[0]?.message?.content
+  return extractJson(completion.choices[0]?.message?.content)
 }
 
 type MessageHistoryEntry = {
   role: "user"|"system"
-  content: string
+  content: any
 }
 
 export const usePromptStore = defineStore('prompt', () => {
@@ -79,28 +117,21 @@ export const usePromptStore = defineStore('prompt', () => {
 
   const memory = ref<string[]>([])
 
-  function updateMemoryFromResponse(str: string) {
-    const regex = /<memory>(.*?)<\/memory>/gi;
-    const matches = str.match(regex);
-
-    if (matches) {
-      for (const match of matches) {
-        const memoryEntry = match.toLowerCase().replace(/<memory>(.*?)<\/memory>/, '$1');
-        memory.value.push(memoryEntry);
-      }
+  function updateMemoryFromResponse(responseJSON: any) {
+    if(responseJSON.memorize) {
+      memory.value.push(responseJSON.memorize)
     }
-    return str.replace(regex, '')
   }
 
   async function submitPrompt() {
     isLoading.value = true
     messageHistory.value.push({role: "user",content: prompt.value})
-    let response = await getGroqChatCompletion(prompt.value, memory.value, messageHistory.value)
-    response = updateMemoryFromResponse(response)
-    messageHistory.value.push({role: "system",content: response})
+    const responseJSON = await getGroqChatCompletion(prompt.value, memory.value, messageHistory.value)
+    updateMemoryFromResponse(responseJSON)
+    messageHistory.value.push({role: "system",content: responseJSON})
     prompt.value = ""
     isLoading.value = false
-    return response
+    return responseJSON
   }
 
   return { prompt, isLoading, messageHistory, isFocused, memory, submitPrompt }

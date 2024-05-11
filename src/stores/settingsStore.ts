@@ -10,5 +10,14 @@ export const useSettingsStore = defineStore('settings', () => {
     return groqApiKey.value
   }
 
-  return { getGroqApiKey }
+  const deepgramApiKey = useStorage('deepgram-api-key', '')
+
+  function getDeepgramApiKey() {
+    if(!deepgramApiKey.value) {
+      deepgramApiKey.value = prompt('Please enter your deepgram api key')
+    }
+    return deepgramApiKey.value
+  }
+
+  return { getGroqApiKey, getDeepgramApiKey }
 })

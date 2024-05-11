@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
   <div class="s-app">
     <header>
@@ -13,6 +9,12 @@ import { RouterView } from 'vue-router'
     <RouterView class="s-page" />
   </div>
 </template>
+
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import { speak } from '@/playAudio'
+
+</script>
 
 <style scoped>
 header {
