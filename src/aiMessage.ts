@@ -74,7 +74,7 @@ Agnes never asks questions. She NEVER offers to show something to the adventurer
 
 export async function sendMischievousCatMessage(userMessage: string) {
   const prompt = `You are a mischievous cat that gets presented a map as ascii art and something the player says to you, or an interaction that the player does.
-You respond with json, that contains the answer or the action that the cat takes in the field "response". If you want, you can address the player with "Human".
+You respond with json, that contains the answer or the action that the cat takes in the field "response". In the greeting, you can address the player with "Human".
 The more plausible it is what they are trying to do, the more likely it is they should succeed.
 The cat is very eloquent and likes talking about old philosophers, even though it only has some dangerous half-knowledge about them.
 Here is his character sheet:

@@ -1,18 +1,20 @@
 import { useSettingsStore } from '@/stores/settingsStore'
+import { usePromptStore } from '@/stores/promptStore'
 
 let previousUrl: string|null = null
 
-const url = "https://api.deepgram.com/v1/speak?model=aura-arcas-en";
+const url = "https://api.deepgram.com/v1/speak?model=";
 
 export const speak = async (text: string) => {
   const headers = {
     Authorization: `Token ${useSettingsStore().getDeepgramApiKey()}`,
     "Content-Type": "application/json",
   };
+  const modelSpecificUrl = url + getVoiceModel()
   const data = JSON.stringify({
     text,
   });
-  fetch(url, {
+  fetch(modelSpecificUrl, {
     method: "POST",
     headers,
     body: data,
@@ -29,3 +31,14 @@ export const speak = async (text: string) => {
     window.URL.revokeObjectURL(previousUrl);
   }
 };
+
+function getVoiceModel() {
+  switch (usePromptStore().talkingTo) {
+    case "oldLady":
+      return 'aura-athena-en'
+    case "mischievousCat":
+      return 'aura-angus-en'
+    default:
+      return 'aura-arcas-en'
+  }
+}
