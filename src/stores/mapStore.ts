@@ -6,7 +6,7 @@ function setCharAt(str: string,index: number,char: string) {
   return str.substring(0,index) + char + str.substring(index+1);
 }
 export const specialThings = {
-  '1': 'Is an old grumpy woman, sitting on a bench. She is willing to give the player a rusty old sword, but only if they bring her a fish, caught from the lake. She doesnt really want to talk about all of that though, because the sword belongs to her missing husband.'
+  '1': 'Is an old grumpy woman, sitting on a bench. She is willing to give the player a rusty old sword, but only if they bring her a fish, caught from the lake. She doesnt really want to talk about all of that though, because the sword belongs to her missing husband. If she is physically attacked, she viciously hits back.'
 }
 function getSpecialThings(mapData: string[]): string[] {
 

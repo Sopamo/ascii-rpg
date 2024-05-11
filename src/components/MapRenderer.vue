@@ -1,6 +1,6 @@
 <template>
   <div class="s-map__wrapper">
-    <div class="s-time">{{ format(new Date(playerStore.currentTime * 1000), 'HH:mm') }}</div>
+    <div class="s-meta">{{ format(new Date(playerStore.currentTime * 1000), 'HH:mm') }} | {{ playerStore.hp }}/{{ playerStore.maxHp }} HP</div>
     <div class="s-map" @mouseleave="setActiveCell(null)">
       <div v-for="(row, rowIndex) in mapStore.mapRows" :key="rowIndex" class="s-row">
         <div :class="getClass(cell)" @mouseover="setActiveCell(cell)" v-for="(cell, columnIndex) in row" class="s-cell"
@@ -34,16 +34,16 @@ const promptStore = usePromptStore()
 const playerStore = usePlayerStore()
 const activeCell = ref<string|null>(null)
 
-const cellTypes: Record<string, {class: string, label: string}> = {
-  '.': { class: 's-floor', label: 'floor' },
-  ':': { class: 's-floor', label: 'impassable terrain' },
-  '#': { class: 's-wall', label: 'wall' },
-  '~': { class: 's-water', label: 'water' },
-  '|': { class: 's-wall', label: 'vertical structure' },
-  '^': { class: 's-forest', label: 'tree' },
-  '"': { class: 's-foliage', label: 'foliage' },
-  '+': { class: 's-wall', label: 'closed door' },
-  '=': { class: 's-wall', label: 'table' },
+const cellTypes: Record<string, {class: string, label: string, isPassable:boolean}> = {
+  '.': { class: 's-floor', label: 'floor', isPassable: true },
+  ':': { class: 's-floor', label: 'impassable terrain', isPassable: false },
+  '#': { class: 's-wall', label: 'wall', isPassable: false },
+  '~': { class: 's-water', label: 'water', isPassable: true },
+  '|': { class: 's-wall', label: 'vertical structure', isPassable: false },
+  '^': { class: 's-forest', label: 'tree', isPassable: false },
+  '"': { class: 's-foliage', label: 'foliage', isPassable: true },
+  '+': { class: 's-wall', label: 'closed door', isPassable: false },
+  '=': { class: 's-wall', label: 'table', isPassable: true },
 }
 
 function getClass(type: string) {
@@ -69,16 +69,36 @@ function handleMapKeyInput(e, callback) {
   callback()
 }
 
+function getCellTypeAt(x: number, y: number) {
+  return cellTypes[mapStore.mapRows[y][x]] ?? null
+}
+
 onKeyStroke(['s', 'S', 'ArrowDown'], (e) => handleMapKeyInput(e, () => {
+  const cellType = getCellTypeAt(playerStore.playerPosition[0], playerStore.playerPosition[1]+1)
+  if(!cellType || !cellType.isPassable) {
+    return
+  }
   playerStore.playerPosition[1]++
 }))
 onKeyStroke(['w', 'W', 'ArrowUp'], (e) => handleMapKeyInput(e, () => {
+  const cellType = getCellTypeAt(playerStore.playerPosition[0], playerStore.playerPosition[1]-1)
+  if(!cellType || !cellType.isPassable) {
+    return
+  }
   playerStore.playerPosition[1]--
 }))
 onKeyStroke(['a', 'A', 'ArrowLeft'], (e) => handleMapKeyInput(e, () => {
+  const cellType = getCellTypeAt(playerStore.playerPosition[0] - 1, playerStore.playerPosition[1])
+  if(!cellType || !cellType.isPassable) {
+    return
+  }
   playerStore.playerPosition[0]--
 }))
 onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
+  const cellType = getCellTypeAt(playerStore.playerPosition[0] + 1, playerStore.playerPosition[1])
+  if(!cellType || !cellType.isPassable) {
+    return
+  }
   playerStore.playerPosition[0]++
 }))
 </script>
@@ -107,7 +127,7 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
   user-select: none;
 }
 
-.s-time {
+.s-meta {
   position: absolute;
   top: 1px;
   right: 1px;

@@ -52,6 +52,7 @@ async function submit() {
   speak(response.narratorResponse)
   playerStore.updateInventoryFromResponse(response)
   playerStore.updateTimeFromResponse(response)
+  playerStore.updateHPFromResponse(response)
   inputRef.value?.focus()
 }
 

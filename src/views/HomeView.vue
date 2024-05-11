@@ -1,15 +1,12 @@
 <template>
   <main class="s-game">
     <GameMessage />
-    <MapRenderer />
-    <Prompt />
+    <router-view>
+    </router-view>
   </main>
 </template>
 
 <script setup lang="ts">
-import MapRenderer from '@/components/MapRenderer.vue'
-import Prompt from '@/components/Prompt.vue'
-
 import GameMessage from '@/components/GameMessage.vue'
 </script>
 

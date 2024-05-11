@@ -1,36 +1,36 @@
 <template>
   <div class="system-message">
-    <transition name="slide-in">
-      <div v-if="systemMessage" class="message">
-        <div>{{ systemMessage.narratorResponse }}</div>
-        <div v-if="systemMessage.inventoryActions?.add" class="s-itemsAdded">
-          <div v-for="item in systemMessage.inventoryActions.add" :key="item" class="s-itemsAdded__item">
-            + {{ item }}
-          </div>
-        </div>
-        <div v-if="systemMessage.inventoryActions?.remove" class="s-itemsRemoved">
-          <div v-for="item in systemMessage.inventoryActions.remove" :key="item" class="s-itemsRemoved__item">
-            - {{ item }}
-          </div>
+    <div v-if="promptStore.currentMessage" class="message">
+      <div>{{ promptStore.currentMessage.narratorResponse }}</div>
+      <div v-if="promptStore.currentMessage.inventoryActions?.add" class="s-itemsAdded">
+        <div v-for="item in promptStore.currentMessage.inventoryActions.add" :key="item" class="s-itemsAdded__item">
+          + {{ item }}
         </div>
       </div>
-    </transition>
+      <div v-if="promptStore.currentMessage.inventoryActions?.remove" class="s-itemsRemoved">
+        <div v-for="item in promptStore.currentMessage.inventoryActions.remove" :key="item" class="s-itemsRemoved__item">
+          - {{ item }}
+        </div>
+      </div>
+      <div v-if="promptStore.currentMessage.hpChange" class="s-hpChange" :class="{'-positive': promptStore.currentMessage.hpChange > 0}">
+        <template v-if="promptStore.currentMessage.hpChange > 0">+</template>{{ promptStore.currentMessage.hpChange }} HP
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { usePromptStore } from '@/stores/promptStore'
-import { ref, watch } from 'vue'
+import {  watch } from 'vue'
 
 const promptStore = usePromptStore()
 
-const systemMessage = ref<null|any>(null)
 watch(() => promptStore.messageHistory, () => {
   const relevantEntries = promptStore.messageHistory.filter(entry => entry.role === "system")
   if(relevantEntries.length === 0) {
     return
   }
-  systemMessage.value = relevantEntries[relevantEntries.length-1].content
+  promptStore.currentMessage = relevantEntries[relevantEntries.length-1].content
 }, {
   deep: true,
 })
@@ -53,24 +53,6 @@ watch(() => promptStore.messageHistory, () => {
   gap: 4px;
 }
 
-.slide-in-enter-active {
-  transition: all 0.5s ease-out;
-}
-
-.slide-in-leave-active {
-  transition: all 0.5s ease-in;
-}
-
-.slide-in-enter, .slide-in-leave-to {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-
-.slide-in-enter-to, .slide-in-leave {
-  transform: translateY(0);
-  opacity: 1;
-}
-
 .s-itemsAdded, .s-itemsRemoved {
   display: flex;
   flex-direction: row;
@@ -83,5 +65,13 @@ watch(() => promptStore.messageHistory, () => {
 .s-itemsRemoved__item {
   font-weight: bold;
   color: red;
+}
+.s-hpChange {
+  font-weight: bold;
+  color: red;
+
+  &.-positive {
+    color: green;
+  }
 }
 </style>
