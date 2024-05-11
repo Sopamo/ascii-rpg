@@ -47,7 +47,6 @@ export const usePromptStore = defineStore('prompt', {
             this.messageHistory.push({ role: 'system', content: responseJSON })
             this.updateMemoryFromResponse(responseJSON)
         }
-        this.updateMemoryFromResponse(responseJSON)
         this.messageHistory.push({ role: 'system', content: responseJSON })
         this.prompt = ''
       } catch (e) {
