@@ -1,9 +1,11 @@
 <template>
   <div class="s-promptInput__wrapper">
     <div class="s-promptInput" :class="{'-loading': promptStore.isLoading}">
-      <form @submit.prevent="submit">
+      <div v-if="talkingToLabel">To: {{ talkingToLabel }}</div>
+      <form @submit.prevent="submit"
+            style="flex: 1">
         <input @focus="promptStore.isFocused = true" @blur="promptStore.isFocused = false" ref="inputRef"
-               :disabled="promptStore.isLoading" type="text" placeholder="What do you want to do?"
+               :disabled="promptStore.isLoading" type="text" :placeholder="talkingToLabel ? 'What do you want to say / do?' : 'What do you want to do?'"
                v-model="promptStore.prompt" />
       </form>
     </div>
@@ -20,10 +22,11 @@
 
 <script setup lang="ts">
 import { usePromptStore } from '@/stores/promptStore'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onKeyStroke } from '@vueuse/core'
 import { usePlayerStore } from '@/stores/playerStore'
 import { speak } from '@/playAudio'
+import { specialThings } from '@/stores/mapStore'
 
 const playerStore = usePlayerStore()
 const promptStore = usePromptStore()
@@ -49,12 +52,23 @@ async function submit() {
     return
   }
   const response = await promptStore.submitPrompt()
-  speak(response.narratorResponse)
+  speak(response.response)
   playerStore.updateInventoryFromResponse(response)
   playerStore.updateTimeFromResponse(response)
   playerStore.updateHPFromResponse(response)
   inputRef.value?.focus()
 }
+
+const talkingToLabel = computed(() => {
+  if(!promptStore.talkingTo) {
+    return null
+  }
+  const specialThing = Object.values(specialThings).find(thing => thing.id === promptStore.talkingTo)
+  if(!specialThing) {
+    return null
+  }
+  return specialThing.interact
+})
 
 </script>
 
@@ -68,6 +82,10 @@ async function submit() {
   border-radius: 3px;
   background: black;
   border: 1px solid #dedede;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
 
   &.-loading {
     background: #1c1c1c;

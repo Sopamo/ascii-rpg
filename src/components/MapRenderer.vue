@@ -75,12 +75,46 @@ function getCellTypeAt(x: number, y: number) {
   return cellTypes[mapStore.mapRows[y][x]] ?? null
 }
 
+function sourroundingSpecialThingAction(callback) {
+  ([-1,0,1]).forEach(columnOffset => {
+    ([-1,0,1]).forEach(rowOffset => {
+      const currentChar = mapStore.mapRows[playerStore.playerPosition[1] + rowOffset]?.[playerStore.playerPosition[0] + columnOffset]
+      if(isSpecialThing(currentChar)) {
+        const specialThing = specialThings[currentChar]
+        callback(specialThing)
+      }
+    })
+  })
+}
+
+onKeyStroke(['e'], (e) => handleMapKeyInput(e, () => {
+  sourroundingSpecialThingAction((specialThing) => {
+    promptStore.currentMessage = {
+      response: specialThing.interact
+    }
+  })
+}))
+
+function onAfterMove() {
+  let foundThingToTalkTo = false
+  sourroundingSpecialThingAction((specialThing) => {
+    if(specialThing.canTalkTo) {
+      foundThingToTalkTo = true
+      promptStore.talkingTo = specialThing.id
+    }
+  })
+  if(!foundThingToTalkTo) {
+    promptStore.talkingTo = null
+  }
+}
+
 onKeyStroke(['s', 'S', 'ArrowDown'], (e) => handleMapKeyInput(e, () => {
   const cellType = getCellTypeAt(playerStore.playerPosition[0], playerStore.playerPosition[1]+1)
   if(!cellType || !cellType.isPassable) {
     return
   }
   playerStore.playerPosition[1]++
+  onAfterMove()
 }))
 onKeyStroke(['w', 'W', 'ArrowUp'], (e) => handleMapKeyInput(e, () => {
   const cellType = getCellTypeAt(playerStore.playerPosition[0], playerStore.playerPosition[1]-1)
@@ -88,6 +122,7 @@ onKeyStroke(['w', 'W', 'ArrowUp'], (e) => handleMapKeyInput(e, () => {
     return
   }
   playerStore.playerPosition[1]--
+  onAfterMove()
 }))
 onKeyStroke(['a', 'A', 'ArrowLeft'], (e) => handleMapKeyInput(e, () => {
   const cellType = getCellTypeAt(playerStore.playerPosition[0] - 1, playerStore.playerPosition[1])
@@ -95,6 +130,7 @@ onKeyStroke(['a', 'A', 'ArrowLeft'], (e) => handleMapKeyInput(e, () => {
     return
   }
   playerStore.playerPosition[0]--
+  onAfterMove()
 }))
 onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
   const cellType = getCellTypeAt(playerStore.playerPosition[0] + 1, playerStore.playerPosition[1])
@@ -102,6 +138,7 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
     return
   }
   playerStore.playerPosition[0]++
+  onAfterMove()
 }))
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="system-message">
     <div v-if="promptStore.currentMessage" class="message">
-      <div>{{ promptStore.currentMessage.narratorResponse }}</div>
+      <div>{{ promptStore.currentMessage.response }}</div>
       <div v-if="promptStore.currentMessage.inventoryActions?.add" class="s-itemsAdded">
         <div v-for="item in promptStore.currentMessage.inventoryActions.add" :key="item" class="s-itemsAdded__item">
           + {{ item }}
