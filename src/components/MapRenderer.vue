@@ -34,6 +34,8 @@ const promptStore = usePromptStore()
 const playerStore = usePlayerStore()
 const activeCell = ref<string|null>(null)
 
+window.playerStore = playerStore
+
 const cellTypes: Record<string, {class: string, label: string, isPassable:boolean}> = {
   '.': { class: 's-floor', label: 'floor', isPassable: true },
   ':': { class: 's-floor', label: 'impassable terrain', isPassable: false },

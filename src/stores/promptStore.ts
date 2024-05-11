@@ -132,11 +132,17 @@ export const usePromptStore = defineStore('prompt', () => {
 
   async function submitPrompt() {
     isLoading.value = true
-    messageHistory.value.push({role: "user",content: prompt.value})
-    const responseJSON = await getGroqChatCompletion(prompt.value, memory.value, messageHistory.value)
-    updateMemoryFromResponse(responseJSON)
-    messageHistory.value.push({role: "system",content: responseJSON})
-    prompt.value = ""
+    let responseJSON = {}
+    try {
+      messageHistory.value.push({role: "user",content: prompt.value})
+      responseJSON = await getGroqChatCompletion(prompt.value, memory.value, messageHistory.value)
+      updateMemoryFromResponse(responseJSON)
+      messageHistory.value.push({role: "system",content: responseJSON})
+      prompt.value = ""
+    } catch(e) {
+      alert('Whoops, the AI gods dont seem to like you today. Please try again.')
+      console.error(e)
+    }
     isLoading.value = false
     return responseJSON
   }
