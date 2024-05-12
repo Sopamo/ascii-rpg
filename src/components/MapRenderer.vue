@@ -15,7 +15,10 @@
     <div class="s-activeCell">
       <template v-if="activeCell">{{ cellTypes[activeCell]?.label || '?' }}</template>
     </div>
-    <Inventory />
+    <div class="s-sidebar">
+      <Inventory />
+      <StatusEffects />
+    </div>
   </div>
 </template>
 
@@ -28,16 +31,13 @@ import { specialThings, useMapStore } from '@/stores/mapStore'
 import Inventory from '@/components/Inventory.vue'
 import { ref } from 'vue'
 import { format } from 'date-fns'
-import { useRouter } from 'vue-router'
+import StatusEffects from '@/components/StatusEffects.vue'
 
 const mapStore = useMapStore()
 const promptStore = usePromptStore()
 const playerStore = usePlayerStore()
 const activeCell = ref<string|null>(null)
-const router = useRouter()
-if(!playerStore.characterId) {
-  router.replace('/characters')
-}
+
 window.playerStore = playerStore
 
 const cellTypes: Record<string, {class: string, label: string, isPassable:boolean}> = {
@@ -202,11 +202,16 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
   color: #264324;
 }
 
-.s-inventory {
+.s-sidebar {
   position: absolute;
   top: 0;
   right: -8px;
   transform: translateX(100%);
+  max-height: 800px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 .s-activeCell {
   height: 16px;

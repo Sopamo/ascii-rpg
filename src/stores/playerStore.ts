@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { StatusEffect } from '@/actors/StatusEffects'
 
 export const usePlayerStore = defineStore('player', {
   state() {
@@ -6,6 +7,7 @@ export const usePlayerStore = defineStore('player', {
       inventory: [] as string[],
       playerPosition: [13, 13] as [number, number],
       characterSheet: "",
+      statusEffects: [] as StatusEffect[],
       characterId: "",
       currentTime: Math.round(Date.now() / 1000),
       hp: 10,

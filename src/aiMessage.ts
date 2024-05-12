@@ -115,7 +115,7 @@ Poe always answers in a clever way, or with double meaning. He doesnt want to mo
   return sendMessage(prompt, userMessage)
 }
 
-function getCommonMetaInfo() {
+export function getCommonMetaInfo() {
   return `Players character sheet:
 ${usePlayerStore().characterSheet}
 Current inventory:
@@ -131,7 +131,7 @@ Current map:
 ${getCurrentMapData().mapString}`
 }
 
-function getMapLegend() {
+export function getMapLegend() {
   return `The ascii map is made out of these things:
 . is the default, empty floor
 : is impassable terrain
@@ -146,7 +146,7 @@ x is the player
 ${getCurrentMapData().specialThings.join("\n")}`
 }
 
-async function sendMessage(systemPrompt: string, userMessage: string) {
+export async function sendMessage(systemPrompt: string, userMessage: string) {
   const groq = new Groq({
     apiKey: useSettingsStore().getGroqApiKey(),
     dangerouslyAllowBrowser: true,
@@ -167,19 +167,19 @@ async function sendMessage(systemPrompt: string, userMessage: string) {
   return extractJson(completion.choices[0]?.message?.content)
 }
 
-function getCurrentTime() {
+export function getCurrentTime() {
   return format(new Date(usePlayerStore().currentTime * 1000), 'hh:mm a')
 }
 
-function getMemoryString() {
+export function getMemoryString() {
   return usePromptStore().memory.length ? usePromptStore().memory.join("\n") : '-'
 }
 
-function getInventoryString() {
+export function getInventoryString() {
   return usePlayerStore().inventoryString
 }
 
-function getCurrentMapData() {
+export function getCurrentMapData() {
   return useMapStore().getCurrentMapData()
 }
 
@@ -192,7 +192,7 @@ function getSuccessProbability() {
   return successProbability
 }
 
-function getLastDungeonMasterMessage() {
+export function getLastDungeonMasterMessage() {
   let lastSystemResponse = ''
   const lastSystemHistoryEntry = [...usePromptStore().messageHistory].reverse().find(entry => entry.role==='system')
   if(lastSystemHistoryEntry) {

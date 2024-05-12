@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { sendDungeonMasterMessage, sendMischievousCatMessage, sendOldLadyMessage } from '@/aiMessage'
+import { events } from '@/events'
 
 type MessageHistoryEntry = {
   role: 'user' | 'system'
@@ -37,20 +38,23 @@ export const usePromptStore = defineStore('prompt', {
           case "oldLady":
             responseJSON = await sendOldLadyMessage(usePromptStore().prompt)
             this.updateMemoryFromResponse(responseJSON, 'oldLady')
+            events.emit('npcSpoke')
             break
           case "mischievousCat":
             responseJSON = await sendMischievousCatMessage(usePromptStore().prompt)
             this.updateMemoryFromResponse(responseJSON, 'mischievousCat')
+            events.emit('npcSpoke')
             break
           default:
             responseJSON = await sendDungeonMasterMessage(usePromptStore().prompt)
             this.messageHistory.push({ role: 'system', content: responseJSON })
             this.updateMemoryFromResponse(responseJSON)
+            events.emit('dungeonMasterSpoke')
         }
         this.messageHistory.push({ role: 'system', content: responseJSON })
         this.prompt = ''
       } catch (e) {
-        alert('Whoops, the AI gods dont seem to like you today. Please try again.')
+        alert('The whole world froze for a second. Nothing happened. Please try again.')
         console.error(e)
       }
       this.isLoading = false
