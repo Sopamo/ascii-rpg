@@ -4,7 +4,8 @@
     <div class="s-message">You died.</div>
     <div class="s-hint">Having mastered some arcane arts, you can rise again, keeping your inventory.</div>
     </div>
-    <button @click="restart" class="s-restart">Rise again</button>
+    <button @click="respawn" class="s-restart" style="margin-bottom: 20px">Rise again</button>
+    <button @click="restart" class="s-restart">Start new adventure</button>
   </div>
 </template>
 
@@ -16,17 +17,30 @@ import { useRouter } from 'vue-router'
 const playerStore = usePlayerStore()
 const promptStore = usePromptStore()
 const router = useRouter()
-function restart() {
-  const inventory = JSON.parse(JSON.stringify(playerStore.inventory))
+if(!playerStore.characterId) {
+  router.replace('/characters')
+}
+
+function resetState() {
   playerStore.$reset()
 
   promptStore.messageHistory = []
   promptStore.prompt = ''
   promptStore.memory = []
   promptStore.currentMessage = null
-  playerStore.inventory = inventory
   playerStore.playerPosition = [13,13]
-  router.replace('/')
+}
+
+function respawn() {
+  const inventory = JSON.parse(JSON.stringify(playerStore.inventory))
+  resetState()
+  playerStore.inventory = inventory
+  router.replace('/adventure')
+}
+function restart() {
+  if(confirm('Reset your inventory and start a completely new adventure?'))
+  resetState()
+  router.replace('/characters')
 }
 </script>
 

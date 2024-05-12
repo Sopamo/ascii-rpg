@@ -5,6 +5,8 @@ export const usePlayerStore = defineStore('player', {
     return {
       inventory: [] as string[],
       playerPosition: [13, 13] as [number, number],
+      characterSheet: "",
+      characterId: "",
       currentTime: Math.round(Date.now() / 1000),
       hp: 10,
       maxHp: 10,

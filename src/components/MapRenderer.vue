@@ -1,6 +1,6 @@
 <template>
   <div class="s-map__wrapper">
-    <div class="s-meta">{{ format(new Date(playerStore.currentTime * 1000), 'HH:mm') }} | {{ playerStore.hp }}/{{ playerStore.maxHp }} HP</div>
+    <div class="s-meta">{{ format(new Date(playerStore.currentTime * 1000), 'HH:mm') }} | {{ playerStore.hp }}/{{ playerStore.maxHp }} HP | {{playerStore.characterId}}</div>
     <div class="s-map" @mouseleave="setActiveCell(null)">
       <div v-for="(row, rowIndex) in mapStore.mapRows" :key="rowIndex" class="s-row">
         <div :class="getClass(cell)" @mouseover="setActiveCell(cell)" v-for="(cell, columnIndex) in row" class="s-cell"
@@ -28,12 +28,16 @@ import { specialThings, useMapStore } from '@/stores/mapStore'
 import Inventory from '@/components/Inventory.vue'
 import { ref } from 'vue'
 import { format } from 'date-fns'
+import { useRouter } from 'vue-router'
 
 const mapStore = useMapStore()
 const promptStore = usePromptStore()
 const playerStore = usePlayerStore()
 const activeCell = ref<string|null>(null)
-
+const router = useRouter()
+if(!playerStore.characterId) {
+  router.replace('/characters')
+}
 window.playerStore = playerStore
 
 const cellTypes: Record<string, {class: string, label: string, isPassable:boolean}> = {

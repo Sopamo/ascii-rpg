@@ -116,15 +116,17 @@ Poe always answers in a clever way, or with double meaning. He doesnt want to mo
 }
 
 function getCommonMetaInfo() {
-  return `${getMapLegend()}
-Current time:
-${getCurrentTime()}
-Memory:
-${getMemoryString()}
+  return `Players character sheet:
+${usePlayerStore().characterSheet}
 Current inventory:
 ${getInventoryString()}
 Current HP:
 ${usePlayerStore().hp}/${usePlayerStore().maxHp}
+${getMapLegend()}
+Current time:
+${getCurrentTime()}
+Memory:
+${getMemoryString()}
 Current map:
 ${getCurrentMapData().mapString}`
 }

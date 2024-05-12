@@ -4,6 +4,12 @@
   font-style: normal;
   src: url("/font.woff2") format('woff2');
 }
+@font-face {
+  font-family: 'upheaval';
+  font-weight: 400;
+  font-style: normal;
+  src: url("/upheavtt.woff2") format('woff2');
+}
 
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
@@ -62,7 +68,10 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-weight: normal;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
 
 body {
