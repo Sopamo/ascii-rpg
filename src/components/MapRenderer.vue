@@ -8,7 +8,12 @@
           <template v-if="columnIndex === playerStore.playerPosition[0] && rowIndex === playerStore.playerPosition[1]">
             x
           </template>
-          <template v-else>{{ isSpecialThing(cell) ? '?' : cell }}</template>
+          <template v-else-if="isSpecialThing(cell)">
+            <img :src="`/img/${specialThings[cell].id}Map.webp`" />
+          </template>
+          <template v-else>
+            {{ cell }}
+          </template>
         </div>
       </div>
     </div>
@@ -200,6 +205,15 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
 .s-foliage {
   background: #328b3f;
   color: #264324;
+}
+.s-cell {
+  width: 32px;
+  height: 32px;
+}
+.s-cell img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
 }
 
 .s-sidebar {

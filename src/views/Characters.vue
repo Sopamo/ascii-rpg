@@ -3,11 +3,11 @@
     <div class="s-characters">
       <div @click="choose('lumberjack')" class="s-character" :class="{'-selected': chosenCharacter === 'lumberjack'}">
         <img class="s-character__image" src="/img/lumberjack.webp">
-        <div class="s-character__name">Kori Nurembur</div>
+        <div class="s-character__name">Kori</div>
       </div>
       <div @click="choose('herbalist')" class="s-character" :class="{'-selected': chosenCharacter === 'herbalist'}">
         <img class="s-character__image" src="/img/herbalist.webp">
-        <div class="s-character__name">Elara Ramos</div>
+        <div class="s-character__name">Elara</div>
       </div>
       <div @click="choose('undead')" class="s-character" :class="{'-selected': chosenCharacter === 'undead'}">
         <img class="s-character__image" src="/img/undead.webp">
