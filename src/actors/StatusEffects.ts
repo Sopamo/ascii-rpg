@@ -12,6 +12,10 @@ export type StatusEffect = {
 const availableStatusEffects = [
   {
     label: 'freezing',
+    handler() {
+      // TODO: Built a global way to let the dungeon master say something via the llm
+      // If the player moves, randomly say "you're so cold that you need to lie down for a second"
+    },
   },
   {
     label: 'wet',
@@ -154,7 +158,8 @@ export class StatusEffects extends Actor {
 It's your job to determine if the player should have any status effects added or removed. 
 You respond with json, that can contain a list of one or more status effects that should be added and one or more that should be removed.
 If a status effect should be added that resolves itself after some time (being wet, happy, sad, etc), you indicate for how many turns it should remain.
-If it's an indefinite effect that doesn't resolve itself (being hungry, sleepy, etc) set -1 as the number of remaining turns. 
+If it's an indefinite effect that doesn't resolve itself (being hungry, sleepy, etc) set -1 as the number of remaining turns.
+If the player takes an action that would remove one of the status effects they currently have, remove that status effect via "removeStatusEffects" in the JSON
 If the current state doesn't imply a change in status effects, output an empty json "{}"
 These are available status effect labels:
 ${statusEffectList}

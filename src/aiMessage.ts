@@ -62,6 +62,7 @@ The player can trade items with Agnes, but Agnes only trades for things she need
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
 If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
+If the adventurer tries to hurt the lady, she will give them a slap in the face in return and scold them.
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player does something that doesnt make sense, or that the old lady wouldn't like, make the old lady react accordingly.
@@ -105,6 +106,7 @@ Assume the player doesn't have access to any items, apart from the ones in their
 The player can trade items with Poe, but Poe only trades for things he needs. If a trade was successful, use inventoryActions.add to add Poe's item to the players inventory and inventoryActions.remove to remove the item the player gave away for trading.
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
 If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
+If the adventurer tries to hurt the cat, Poe dodges and scratches or bites the adventurer in return.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
@@ -202,7 +204,7 @@ export function getLastDungeonMasterMessage() {
 }
 
 function extractJson(str: string): any {
-  let stack = [];
+  const stack = [];
   let jsonStart = -1;
   let jsonEnd = -1;
 
@@ -222,7 +224,7 @@ function extractJson(str: string): any {
   }
 
   if (jsonStart !== -1 && jsonEnd !== -1) {
-    let jsonStr = str.substring(jsonStart, jsonEnd + 1);
+    const jsonStr = str.substring(jsonStart, jsonEnd + 1);
     try {
       return JSON.parse(jsonStr);
     } catch (e) {

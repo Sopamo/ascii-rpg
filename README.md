@@ -3,11 +3,16 @@
 ## Characters
 
 ### Echo
+
+#### Background
 - Echo was brought back to life by a necromancer. He does not know why, how or where.
 - He wants to find out why he needs to spend more time in this miserable world
 
-### Anchi
-- Anchi has settled as a lumberjack, after having lead a life of violence before
+#### Story
+ - Someone at the 
+
+### Arnold
+- Arnold has settled as a lumberjack, after having lead a life of violence before
 - He wants to find mystwood, a rare type of wood, said to always be cool to the touch
 - It would help him to fashion a box to help keep his dead prey cool for longer.
 
@@ -35,6 +40,17 @@
 - Poe is willing to tell the adventurer a secret, if he brings him the treasure from the monster
 - The secret is "speak friend and enter"
 - He mentions that the old lady might have something to help fight the monster
+
+### The Tower
+
+
+### The Town
+#### The angry person
+They are angry because their close relative died because of Elara's accident.
+
+### The Wilderness
+
+
 
 ## Recommended IDE Setup
 

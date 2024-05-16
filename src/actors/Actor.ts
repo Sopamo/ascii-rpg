@@ -1,6 +1,7 @@
 export class Actor {
   id: string = ''
-  eventHandlers
+  eventHandlers = []
+
   constructor() {
 
   }
@@ -9,6 +10,7 @@ export class Actor {
    * Is called once per second
    */
   tick(): void {
+    
   }
 
   despawn() {
