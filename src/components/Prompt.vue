@@ -28,7 +28,6 @@ import { usePlayerStore } from '@/stores/playerStore'
 import { speak } from '@/playAudio'
 import { specialThings } from '@/stores/mapStore'
 
-const playerStore = usePlayerStore()
 const promptStore = usePromptStore()
 const inputRef = ref<null | HTMLInputElement>(null)
 
@@ -64,7 +63,7 @@ const talkingToLabel = computed(() => {
   if(!specialThing) {
     return null
   }
-  return specialThing.interact
+  return specialThing.label
 })
 
 </script>

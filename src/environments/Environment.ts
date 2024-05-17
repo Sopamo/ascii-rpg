@@ -11,6 +11,10 @@ export function getCurrentEnvironment() {
   return currentEvironment
 }
 
+interface PhysicalActor extends InstanceType<typeof Actor> {
+  position: {x: number; y: number}
+}
+
 export class Environment {
   id: string = ''
   actors: Actor[] = []
@@ -32,6 +36,10 @@ export class Environment {
 
   getGeneralStateUpdater(): GeneralStateUpdater|undefined {
     return this.actors.find(actor => actor.id === "generalStateUpdater") as GeneralStateUpdater|undefined
+  }
+
+  getPhysicalActors(): PhysicalActor[] {
+    return this.actors.filter(actor => actor.position !== undefined)
   }
 
   getStatusEffects(): StatusEffects|undefined {

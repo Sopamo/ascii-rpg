@@ -8,7 +8,9 @@ type Events = {
     actor: string
     message: string
   }
-  personASaid: string
+  playerSpoke: {
+    message: string
+  }
 };
 
 export const events = mitt<Events>()

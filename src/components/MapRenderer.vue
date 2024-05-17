@@ -8,8 +8,8 @@
           <template v-if="columnIndex === playerStore.playerPosition[0] && rowIndex === playerStore.playerPosition[1]">
             x
           </template>
-          <template v-else-if="isSpecialThing(cell)">
-            <img :src="`/img/${specialThings[cell].id}Map.webp`" />
+          <template v-else-if="getSpecialThing(cell, columnIndex, rowIndex)">
+            <img :src="`/img/${getSpecialThing(cell, columnIndex, rowIndex).id}Map.webp`" />
           </template>
           <template v-else>
             {{ cell }}
@@ -37,6 +37,7 @@ import Inventory from '@/components/Inventory.vue'
 import { ref } from 'vue'
 import { format } from 'date-fns'
 import StatusEffects from '@/components/StatusEffects.vue'
+import { getCurrentEnvironment } from '@/environments/Environment'
 
 const mapStore = useMapStore()
 const promptStore = usePromptStore()
@@ -68,8 +69,15 @@ function setActiveCell(cellType: string) {
   activeCell.value = cellType
 }
 
-function isSpecialThing(char: string) {
-  return Object.keys(specialThings).includes(char)
+function getSpecialThing(char: string, x: number, y: number) {
+  if(Object.keys(specialThings).includes(char)) {
+    return specialThings[char]
+  }
+  const actor = getCurrentEnvironment().getPhysicalActors().find(actor => actor.position.x === x && actor.position.y === y)
+  if(actor) {
+    return actor
+  }
+  return null
 }
 
 function handleMapKeyInput(e, callback) {
@@ -88,8 +96,8 @@ function sourroundingSpecialThingAction(callback) {
   ([-1,0,1]).forEach(columnOffset => {
     ([-1,0,1]).forEach(rowOffset => {
       const currentChar = mapStore.mapRows[playerStore.playerPosition[1] + rowOffset]?.[playerStore.playerPosition[0] + columnOffset]
-      if(isSpecialThing(currentChar)) {
-        const specialThing = specialThings[currentChar]
+      const specialThing = getSpecialThing(currentChar, columnOffset, rowOffset)
+      if(specialThing) {
         callback(specialThing)
       }
     })
@@ -99,7 +107,7 @@ function sourroundingSpecialThingAction(callback) {
 onKeyStroke(['e'], (e) => handleMapKeyInput(e, () => {
   sourroundingSpecialThingAction((specialThing) => {
     promptStore.currentMessage = {
-      response: specialThing.interact
+      response: specialThing.label
     }
   })
 }))

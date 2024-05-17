@@ -35,6 +35,9 @@ export const usePromptStore = defineStore('prompt', {
       let responseJSON = {}
       try {
         this.messageHistory.push({ role: 'user', content: this.prompt })
+        events.emit("playerSpoke", {
+          message: this.prompt
+        })
         switch(this.talkingTo) {
           case "oldLady":
             responseJSON = await sendOldLadyMessage(usePromptStore().prompt)

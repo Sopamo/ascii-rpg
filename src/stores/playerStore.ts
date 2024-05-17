@@ -5,7 +5,7 @@ import { acceptHMRUpdate } from "pinia"
 export const usePlayerStore = defineStore('player', {
   state() {
     return {
-      inventory: ["fish"] as string[],
+      inventory: [] as string[],
       playerPosition: [13, 13] as [number, number],
       characterSheet: "",
       statusEffects: [] as StatusEffect[],

@@ -7,31 +7,31 @@ export const specialThings = {
   '1': {
     id: 'oldLady',
     canTalkTo: true,
-    interact: 'old lady',
+    label: 'old lady',
     summary: 'Is an old grumpy woman, sitting on a bench. She is willing to give the player a rusty old sword, but only if they bring her a fish, caught from the lake. She doesnt really want to talk about all of that though, because the sword belongs to her missing husband. If she is physically attacked, she viciously hits back.'
   },
   '2': {
     id: 'boat',
     canTalkTo: false,
-    interact: 'boat',
+    label: 'boat',
     summary: 'Is a tiny wooden boat without a sail and without oars. You don\'t want to get in, before you have a way to propel yourself forward in the boat.'
   },
   '3': {
     id: 'seaMonster',
     canTalkTo: false,
-    interact: 'sea monster',
+    label: 'sea monster',
     summary: 'Is a sea monster, vulnerable against rust. You don\'t stand a chance against it without any weapons, it would just kill you. Hitting it with a rusty sword is super effective though. Hitting it once or twice would kill it. If you do manage to kill it, you get plentyful treasure (+100 coins).'
   },
   '4': {
     id: 'mischievousCat',
     canTalkTo: true,
-    interact: 'cat',
+    label: 'cat',
     summary: 'Is a cat, sitting next to some tables and looking for some food. Really likes to be pet.'
   },
 }
 
 function getSpecialThings(mapData: string[]): string[] {
-
+  // TODO: Return relevant actors as well
   const mapString = mapData.join('')
   const relevantThings: string[] = []
   Object.entries(specialThings).forEach(([key, thing]) => {
