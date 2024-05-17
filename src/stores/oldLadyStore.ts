@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
-import { sendDungeonMasterMessage, sendOldLadyMessage } from '@/aiMessage'
-import { usePromptStore } from '@/stores/promptStore'
+import { acceptHMRUpdate } from "pinia"
 
 type MessageHistoryEntry = {
   role: 'user' | 'system'
@@ -15,3 +14,9 @@ export const useOldLadyStore = defineStore('oldLady', {
     }
   },
 })
+
+
+if (import.meta.hot) {
+  // @ts-ignore
+  import.meta.hot.accept(acceptHMRUpdate(useOldLadyStore, import.meta.hot))
+}

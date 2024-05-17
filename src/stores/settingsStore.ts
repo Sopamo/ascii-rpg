@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { useStorage } from '@vueuse/core'
+import { acceptHMRUpdate } from "pinia"
+
 export const useSettingsStore = defineStore('settings', () => {
   const groqApiKey = useStorage('groq-api-key', '')
 
@@ -21,3 +23,8 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return { getGroqApiKey, getDeepgramApiKey }
 })
+
+if (import.meta.hot) {
+  // @ts-ignore
+  import.meta.hot.accept(acceptHMRUpdate(useSettingsStore, import.meta.hot))
+}

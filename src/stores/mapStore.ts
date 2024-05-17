@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import mapRows from '../assets/map.json'
 import { usePlayerStore } from '@/stores/playerStore'
+import { acceptHMRUpdate } from "pinia"
 
 export const specialThings = {
   '1': {
@@ -73,3 +74,9 @@ export const useMapStore = defineStore('map', () => {
 
   return { mapRows, getCurrentMapData }
 })
+
+
+if (import.meta.hot) {
+  // @ts-ignore
+  import.meta.hot.accept(acceptHMRUpdate(useMapStore, import.meta.hot))
+}

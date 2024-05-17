@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { sendDungeonMasterMessage, sendMischievousCatMessage, sendOldLadyMessage } from '@/aiMessage'
 import { events } from '@/events'
+import { acceptHMRUpdate } from "pinia"
 
 type MessageHistoryEntry = {
   role: 'user' | 'system'
@@ -62,3 +63,8 @@ export const usePromptStore = defineStore('prompt', {
     }
   }
 })
+
+if (import.meta.hot) {
+  // @ts-ignore
+  import.meta.hot.accept(acceptHMRUpdate(usePromptStore, import.meta.hot))
+}

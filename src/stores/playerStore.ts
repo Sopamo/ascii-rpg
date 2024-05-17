@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { StatusEffect } from '@/actors/StatusEffects'
+import { acceptHMRUpdate } from "pinia"
 
 export const usePlayerStore = defineStore('player', {
   state() {
@@ -49,3 +50,9 @@ export const usePlayerStore = defineStore('player', {
     }
   }
 })
+
+
+if (import.meta.hot) {
+  // @ts-ignore
+  import.meta.hot.accept(acceptHMRUpdate(usePlayerStore, import.meta.hot))
+}

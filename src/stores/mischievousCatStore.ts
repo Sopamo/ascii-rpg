@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { acceptHMRUpdate } from "pinia"
 
 type MessageHistoryEntry = {
   role: 'user' | 'system'
@@ -13,3 +14,9 @@ export const useMischievousCatStore = defineStore('mischievousCat', {
     }
   },
 })
+
+
+if (import.meta.hot) {
+  // @ts-ignore
+  import.meta.hot.accept(acceptHMRUpdate(useMischievousCatStore, import.meta.hot))
+}
