@@ -1,9 +1,14 @@
 import mitt from 'mitt'
 
 type Events = {
-  dungeonMasterSpoke: undefined;
-  npcSpoke: undefined;
-  personASaid: string;
+  dungeonMasterSpoke: {
+    message: string
+  }
+  npcSpoke: {
+    actor: string
+    message: string
+  }
+  personASaid: string
 };
 
 export const events = mitt<Events>()

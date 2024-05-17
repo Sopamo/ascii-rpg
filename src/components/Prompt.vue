@@ -53,9 +53,6 @@ async function submit() {
   }
   const response = await promptStore.submitPrompt()
   speak(response.response)
-  playerStore.updateInventoryFromResponse(response)
-  playerStore.updateTimeFromResponse(response)
-  playerStore.updateHPFromResponse(response)
   inputRef.value?.focus()
 }
 

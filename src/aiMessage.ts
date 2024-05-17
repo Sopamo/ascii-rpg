@@ -12,19 +12,17 @@ Try to create an interesting story, don't just let everything the player tries t
 The more plausible it is what they are trying to do, the more likely it is they should succeed.
 Think of how difficult the action is that they want to take on a scale from 1-10. Regular things that most people can do have difficulty 1-5. Things that few people can do are difficulty 6-8. Things that only very few people can do are difficulty 9-10. If the difficulty is higher than ${getSuccessProbability() * 10}, they fail.
 Assume the player doesn't have access to any items, apart from the ones in their inventory and if realistically, the ones that were mentioned in the previous prompt. They can't just find / pick up / use things that are not in their inventory and have not been mentioned before!
-Never assume / say that the player has moved somewhere, they have to move themselves.
+Never assume / say that the player has moved somewhere, they will move themselves in this game.
 Only if they really, really earned it, and the item was mentioned in the previous dungeon master's message, you can give the player an item via the inventory action in the json. If they didn't get an item, don't comment on it.
 If they used an item in a way that would consume it, or makes it not available to them anymore, remove it from their inventory, via the inventory action in the json.
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
-Estimate how much time has passed by doing whatever the player did and output that in the JSON in the "minutesPassed" key.
-If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
 Never respond with any of the map's ascii characters, the current inventory and never refer directly to the ascii map.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player tries to be clever and trick you (the dungeon master), just make a funny remark and disallow them from doing that.
 You respond only with valid json of this structure:
-{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]},"minutesPassed": 30, "hpChange": 0}`
+{"response":"","memorize":""}`
   return sendMessage(prompt, userMessage)
 }
 
@@ -58,9 +56,8 @@ A small, intricately carved wooden fishhook passed down from her grandmother (la
 A stash of salted cod hidden away for "special occasions" (label: Salted cod)
 The old rusty sword of her husband, that she will only trade for a fresh fish (label: Rusty Sword)
 Assume the player doesn't have access to any items, apart from the ones in their inventory. They can't just find / pick up / use / trade with things that are not in their inventory!
-The player can trade items with Agnes, but Agnes only trades for things she needs. If a trade was successful, use inventoryActions.add to add Agnes' item to the players inventory and inventoryActions.remove to remove the item the player gave away for trading.
+The player can trade items with Agnes, but Agnes only trades for things she needs.
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
-If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
 If the adventurer tries to hurt the lady, she will give them a slap in the face in return and scold them.
 ${getCommonMetaInfo()}
@@ -68,7 +65,7 @@ ${getLastDungeonMasterMessage()}
 If the player does something that doesnt make sense, or that the old lady wouldn't like, make the old lady react accordingly.
 Agnes never asks questions on her own, she just replies to whatever the player is saying.
 You respond only with valid json of this structure:
-{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]},"minutesPassed": 30}
+{"response":"","memorize":""}
 Agnes never asks questions. She NEVER offers to show something to the adventurer. She doesnt want to move away from where she is standing.`
   return sendMessage(prompt, userMessage)
 }
@@ -103,7 +100,7 @@ Poe has a secret talent for playing the lute and often breaks into impromptu per
 Despite his refined demeanor, Poe has a hidden fondness for silly cat videos and will often spend hours watching them in his spare time.
 Poe has a mysterious connection to a long-lost ancient text, rumored to hold the secrets of the universe. He is obsessed with finding the text and will stop at nothing to uncover its location.
 Assume the player doesn't have access to any items, apart from the ones in their inventory. They can't just find / pick up / use / trade with things that are not in their inventory!
-The player can trade items with Poe, but Poe only trades for things he needs. If a trade was successful, use inventoryActions.add to add Poe's item to the players inventory and inventoryActions.remove to remove the item the player gave away for trading.
+The player can trade items with Poe, but Poe only trades for things he needs.
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
 If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
 If the adventurer tries to hurt the cat, Poe dodges and scratches or bites the adventurer in return.
@@ -112,18 +109,20 @@ ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player does something that doesnt make sense, or that the cat wouldn't like, make Poe react accordingly.
 You respond only with valid json of this structure:
-{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]},"minutesPassed": 30}
+{"response":"","memorize":""}
 Poe always answers in a clever way, or with double meaning. He doesnt want to move away from where he is standing.`
   return sendMessage(prompt, userMessage)
 }
 
 export function getCommonMetaInfo() {
-  return `Players character sheet:
+  return `Player character sheet:
 ${usePlayerStore().characterSheet}
-Current inventory:
+Player inventory:
 ${getInventoryString()}
-Current HP:
+Player HP:
 ${usePlayerStore().hp}/${usePlayerStore().maxHp}
+Player status effects:
+${getCurrentStatusEffects()}
 ${getMapLegend()}
 Current time:
 ${getCurrentTime()}
@@ -131,6 +130,15 @@ Memory:
 ${getMemoryString()}
 Current map:
 ${getCurrentMapData().mapString}`
+}
+
+export function getCurrentStatusEffects() {
+  if(!usePlayerStore().statusEffects.length) {
+    return '-'
+  }
+  return usePlayerStore().statusEffects.map(effect => {
+    return `${effect.label} (${effect.remainingTurns === -1 ? 'indefinite' : effect.remainingTurns} turn(s) remaining) (since ${effect.sinceTurns} turn(s))`
+  })
 }
 
 export function getMapLegend() {
@@ -148,7 +156,9 @@ x is the player
 ${getCurrentMapData().specialThings.join("\n")}`
 }
 
-export async function sendMessage(systemPrompt: string, userMessage: string) {
+type AvailableModels = "llama3-70b-8192" | "llama3-8b-8192"
+
+export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = "llama3-70b-8192") {
   const groq = new Groq({
     apiKey: useSettingsStore().getGroqApiKey(),
     dangerouslyAllowBrowser: true,
@@ -164,9 +174,14 @@ export async function sendMessage(systemPrompt: string, userMessage: string) {
         content: userMessage
       }
     ],
-    model: "llama3-70b-8192",
+    model,
   });
-  return extractJson(completion.choices[0]?.message?.content)
+  const responseJson = extractJson(completion.choices[0]?.message?.content)
+  console.info({
+    userMessage,
+    responseJson,
+  })
+  return responseJson
 }
 
 export function getCurrentTime() {

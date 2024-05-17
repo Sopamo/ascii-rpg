@@ -3,21 +3,21 @@
     <img class="s-avatar" :src="promptStore.talkingTo ? `/img/${promptStore.talkingTo}.webp` : '/img/lake.webp'" />
     <div class="message">
       <div>{{ promptStore.currentMessage.response }}</div>
-      <div v-if="promptStore.currentMessage.inventoryActions?.add" class="s-itemsAdded">
-        <div v-for="item in promptStore.currentMessage.inventoryActions.add" :key="item" class="s-itemsAdded__item">
+      <div v-if="currentGeneralUpdates.inventoryActions?.add" class="s-itemsAdded">
+        <div v-for="item in currentGeneralUpdates.inventoryActions.add" :key="item" class="s-itemsAdded__item">
           + {{ item }}
         </div>
       </div>
-      <div v-if="promptStore.currentMessage.inventoryActions?.remove" class="s-itemsRemoved">
-        <div v-for="item in promptStore.currentMessage.inventoryActions.remove" :key="item"
+      <div v-if="currentGeneralUpdates.inventoryActions?.remove" class="s-itemsRemoved">
+        <div v-for="item in currentGeneralUpdates.inventoryActions.remove" :key="item"
              class="s-itemsRemoved__item">
           - {{ item }}
         </div>
       </div>
-      <div v-if="promptStore.currentMessage.hpChange" class="s-hpChange"
-           :class="{'-positive': promptStore.currentMessage.hpChange > 0}">
-        <template v-if="promptStore.currentMessage.hpChange > 0">+</template>
-        {{ promptStore.currentMessage.hpChange }} HP
+      <div v-if="currentGeneralUpdates.hpChange" class="s-hpChange"
+           :class="{'-positive': currentGeneralUpdates.hpChange > 0}">
+        <template v-if="currentGeneralUpdates.hpChange > 0">+</template>
+        {{ currentGeneralUpdates.hpChange }} HP
       </div>
     </div>
     <img v-if="usePlayerStore().characterId" class="s-avatar" :src="`/img/${usePlayerStore().characterId}.webp`" />
@@ -26,10 +26,15 @@
 
 <script setup lang="ts">
 import { usePromptStore } from '@/stores/promptStore'
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { usePlayerStore } from '@/stores/playerStore'
+import { getCurrentEnvironment } from '@/environments/Environment'
 
 const promptStore = usePromptStore()
+
+const currentGeneralUpdates = computed(() => {
+  return getCurrentEnvironment().getGeneralStateUpdater()!.currentUpdates.value
+})
 
 watch(() => promptStore.messageHistory, () => {
   const relevantEntries = promptStore.messageHistory.filter(entry => entry.role === 'system')

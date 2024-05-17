@@ -1,5 +1,15 @@
 import type { Actor } from '@/actors/Actor'
 import { events } from '@/events'
+import type { GeneralStateUpdater } from '@/actors/GeneralStateUpdater'
+import type { StatusEffects } from '@/actors/StatusEffects'
+
+let currentEvironment: Environment = null as unknown as Environment
+export function setCurrentEnvironment(environment: Environment) {
+  currentEvironment = environment
+}
+export function getCurrentEnvironment() {
+  return currentEvironment
+}
 
 export class Environment {
   id: string = ''
@@ -19,4 +29,13 @@ export class Environment {
 
     this.actors.forEach(actor => actor.despawn())
   }
+
+  getGeneralStateUpdater(): GeneralStateUpdater|undefined {
+    return this.actors.find(actor => actor.id === "generalStateUpdater") as GeneralStateUpdater|undefined
+  }
+
+  getStatusEffects(): StatusEffects|undefined {
+    return this.actors.find(actor => actor.id === "statusEffects") as StatusEffects|undefined
+  }
+
 }

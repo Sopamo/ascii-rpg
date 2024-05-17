@@ -9,6 +9,7 @@ import { Lake } from '@/environments/Lake'
 import { onUnmounted } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { usePlayerStore } from '@/stores/playerStore'
+import { setCurrentEnvironment } from '@/environments/Environment'
 
 const playerStore = usePlayerStore()
 const router = useRouter()
@@ -19,6 +20,7 @@ if(!playerStore.characterId) {
 
 const environment = new Lake()
 environment.spawn()
+setCurrentEnvironment(environment)
 onBeforeRouteLeave(() => {
   environment.despawn()
 })

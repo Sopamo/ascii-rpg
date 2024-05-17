@@ -1,6 +1,12 @@
 import { Actor } from '@/actors/Actor'
 import { events } from '@/events'
-import { getCommonMetaInfo, getLastDungeonMasterMessage, sendMessage } from '@/aiMessage'
+import {
+  getCommonMetaInfo, getCurrentStatusEffects, getCurrentTime,
+  getInventoryString,
+  getLastDungeonMasterMessage,
+  getMapLegend,
+  sendMessage
+} from '@/aiMessage'
 import { usePlayerStore } from '@/stores/playerStore'
 
 export type StatusEffect = {
@@ -96,28 +102,31 @@ const availableStatusEffects = [
 
 export class StatusEffects extends Actor {
   id = 'statusEffects'
-  statusEffects: StatusEffect[] = []
   eventHandlerSetup = false
 
   constructor() {
     super()
-    this.statusEffects = []
     if(!this.eventHandlerSetup) {
       this.eventHandlerSetup = true
-      events.on('dungeonMasterSpoke', () => this.applyStatusEffects())
-      events.on('dungeonMasterSpoke', () => this.updateStatusEffects())
-      events.on('dungeonMasterSpoke', () => this.calculateStatusEffects())
+      events.on('dungeonMasterSpoke', ({ message }) => this.runStep(message))
+      events.on('npcSpoke', ({ message}) => this.runStep(message))
     }
   }
 
-  async applyStatusEffects() {
-    usePlayerStore().statusEffects.forEach((statusEffect, index) => {
+  async runStep(message: string) {
+    await this.executeExistingStatusEffects()
+    await this.updateStatusEffectDurations()
+    await this.calculateNewStatusEffects(message)
+  }
+
+  async executeExistingStatusEffects() {
+    usePlayerStore().statusEffects.forEach((statusEffect) => {
       const effectConfig = availableStatusEffects.find(e => e.label === statusEffect.label)
       effectConfig?.handler?.()
     })
   }
 
-  async updateStatusEffects() {
+  async updateStatusEffectDurations() {
     usePlayerStore().statusEffects.forEach((statusEffect, index) => {
       usePlayerStore().statusEffects[index].sinceTurns++
       if(statusEffect.remainingTurns > 0) {
@@ -128,9 +137,14 @@ export class StatusEffects extends Actor {
     usePlayerStore().statusEffects = usePlayerStore().statusEffects.filter(e => e.remainingTurns !== 0)
   }
 
-  async calculateStatusEffects() {
+  async calculateNewStatusEffects(message: string) {
     console.log('calculate status effects')
-    const changes = await this.determineStatusEffectChanges()
+    const changes = await this.determineStatusEffectChanges(message)
+
+    // Remove status effects first, so that we don't remove effects that we just added
+    if(changes.removeStatusEffects) {
+      usePlayerStore().statusEffects = usePlayerStore().statusEffects.filter(e => !changes.removeStatusEffects!.includes(e.label))
+    }
     if(changes.addStatusEffects) {
       changes.addStatusEffects.forEach(statusEffect => {
         const existingEffect = usePlayerStore().statusEffects.find(e => e.label === statusEffect.label)
@@ -147,29 +161,37 @@ export class StatusEffects extends Actor {
         }
       })
     }
-    if(changes.removeStatusEffects) {
-      usePlayerStore().statusEffects = usePlayerStore().statusEffects.filter(e => !changes.removeStatusEffects!.includes(e.label))
-    }
   }
 
-  async determineStatusEffectChanges(): Promise<{addStatusEffects?:{label: string, remainingTurns: number}[],removeStatusEffects?:string[]}> {
+  async determineStatusEffectChanges(message: string): Promise<{addStatusEffects?:{label: string, remainingTurns: number}[],removeStatusEffects?:string[]}> {
     const statusEffectList = availableStatusEffects.map(e => e.label).join("\n")
-    const prompt = `You are an observer of a turn based rpg game and get passed the current game stats (including an ascii map of the player's current location).
-It's your job to determine if the player should have any status effects added or removed. 
-You respond with json, that can contain a list of one or more status effects that should be added and one or more that should be removed.
+    const prompt = `You are an observer of a turn based rpg game and get passed the current message from the dungeon master.
+It's your job to determine if, based on the player's/environment's action, the player should have any status effects added or removed. 
+You respond with json, which can contain a list of one or more status effects that should be added and one or more that should be removed.
 If a status effect should be added that resolves itself after some time (being wet, happy, sad, etc), you indicate for how many turns it should remain.
 If it's an indefinite effect that doesn't resolve itself (being hungry, sleepy, etc) set -1 as the number of remaining turns.
-If the player takes an action that would remove one of the status effects they currently have, remove that status effect via "removeStatusEffects" in the JSON
-If the current state doesn't imply a change in status effects, output an empty json "{}"
-These are available status effect labels:
-${statusEffectList}
+If, what the player does, would result in one of the status effects being removed, remove that status effect via "removeStatusEffects" in the response JSON
+You can also decide to "escalate" a status effect. E.g. if the player is already wet, and stays in the water, you can remove the "wet" status effect and add the "drenched" status effect.
+Only change the status effects, if that change is clearly indicated in the dungeon master's response. Otherwise, output an empty json "{}"
 You respond only with valid json of this structure:
 {"addStatusEffects":[{label: "wet","remainingTurns":5],"removeStatusEffects":["sick"]}`
 
-    const currentStatus = `${getCommonMetaInfo()}
-${getLastDungeonMasterMessage()}
+    const currentStatus = `Player character sheet:
+${usePlayerStore().characterSheet}
+Player inventory:
+${getInventoryString()}
+Player HP:
+${usePlayerStore().hp}/${usePlayerStore().maxHp}
+Player status effects:
+${getCurrentStatusEffects()}
+Current time:
+${getCurrentTime()}
+Available status effect labels:
+${statusEffectList}
+Dungeon Master Message:
+${message}
 Only respond with json.`
 
-    return await sendMessage(prompt, currentStatus)
+    return await sendMessage(prompt, currentStatus, "llama3-70b-8192")
   }
 }

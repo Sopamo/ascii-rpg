@@ -39,18 +39,26 @@ export const usePromptStore = defineStore('prompt', {
           case "oldLady":
             responseJSON = await sendOldLadyMessage(usePromptStore().prompt)
             this.updateMemoryFromResponse(responseJSON, 'oldLady')
-            events.emit('npcSpoke')
+            events.emit('npcSpoke', {
+              actor: 'oldLady',
+              message: responseJSON.response
+            })
             break
           case "mischievousCat":
             responseJSON = await sendMischievousCatMessage(usePromptStore().prompt)
             this.updateMemoryFromResponse(responseJSON, 'mischievousCat')
-            events.emit('npcSpoke')
+            events.emit('npcSpoke', {
+              actor: 'mischievousCat',
+              message: responseJSON.response
+            })
             break
           default:
             responseJSON = await sendDungeonMasterMessage(usePromptStore().prompt)
             this.messageHistory.push({ role: 'system', content: responseJSON })
             this.updateMemoryFromResponse(responseJSON)
-            events.emit('dungeonMasterSpoke')
+            events.emit('dungeonMasterSpoke', {
+              message: responseJSON.response
+            })
         }
         this.messageHistory.push({ role: 'system', content: responseJSON })
         this.prompt = ''
