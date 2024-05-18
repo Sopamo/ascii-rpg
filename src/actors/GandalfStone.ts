@@ -20,7 +20,6 @@ export class GandalfStone extends Actor {
 
   async runStep(message: string) {
     if(message.toLowerCase().includes("friend") && this.isWithinRadius({x: usePlayerStore().playerPosition[0], y: usePlayerStore().playerPosition[1]}, 2)) {
-      alert("open")
       this.position.y--
       playAudio("/sounds/gandalf-stone-open.mp3")
     }

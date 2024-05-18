@@ -2,7 +2,7 @@
   <div class="s-map__wrapper">
     <div class="s-meta">{{ format(new Date(playerStore.currentTime * 1000), 'HH:mm') }} | {{ playerStore.hp }}/{{ playerStore.maxHp }} HP | {{playerStore.characterId}}</div>
     <div class="s-map" @mouseleave="setActiveCell(null)">
-      <div v-for="(row, rowIndex) in mapStore.mapRows" :key="rowIndex" class="s-row">
+      <div v-for="(row, rowIndex) in mapStore.visibleMap" :key="rowIndex" class="s-row">
         <div :class="getClass(cell)" @mouseover="setActiveCell(cell)" v-for="(cell, columnIndex) in row" class="s-cell"
              :key="columnIndex">
           <template v-if="columnIndex === playerStore.playerPosition[0] && rowIndex === playerStore.playerPosition[1]">
@@ -34,7 +34,7 @@ import { usePromptStore } from '@/stores/promptStore'
 import { usePlayerStore } from '@/stores/playerStore'
 import { specialThings, useMapStore } from '@/stores/mapStore'
 import Inventory from '@/components/Inventory.vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { format } from 'date-fns'
 import StatusEffects from '@/components/StatusEffects.vue'
 import { getCurrentEnvironment } from '@/environments/Environment'
@@ -58,6 +58,27 @@ const cellTypes: Record<string, {class: string, label: string, isPassable:boolea
   '=': { class: 's-wall', label: 'table', isPassable: true },
 }
 
+watch(() => playerStore.playerPosition, () => {
+  const movementArea = 6
+  const [x, y] = playerStore.playerPosition
+  const {x: mapX, y: mapY} = mapStore.currentMapCenter
+  if(x > mapX + movementArea) {
+    mapStore.currentMapCenter.x++
+  }
+  if(x < mapX - movementArea) {
+    mapStore.currentMapCenter.x--
+  }
+  if(y > mapY + movementArea) {
+    mapStore.currentMapCenter.y++
+  }
+  if(y < mapY - movementArea) {
+    mapStore.currentMapCenter.y--
+  }
+}, {
+  deep: true,
+  immediate: true,
+})
+
 function getClass(type: string) {
   if (!cellTypes[type]) {
     return ''
@@ -69,11 +90,15 @@ function setActiveCell(cellType: string) {
   activeCell.value = cellType
 }
 
+function getActorAt(x: number, y: number) {
+  return getCurrentEnvironment().getPhysicalActors().find(actor => actor.position.x === x && actor.position.y === y)
+}
+
 function getSpecialThing(char: string, x: number, y: number) {
   if(Object.keys(specialThings).includes(char)) {
     return specialThings[char]
   }
-  const actor = getCurrentEnvironment().getPhysicalActors().find(actor => actor.position.x === x && actor.position.y === y)
+  const actor = getActorAt(x, y)
   if(actor) {
     return actor
   }
@@ -92,11 +117,13 @@ function getCellTypeAt(x: number, y: number) {
   return cellTypes[mapStore.mapRows[y][x]] ?? null
 }
 
-function sourroundingSpecialThingAction(callback) {
+function surroundingSpecialThingAction(callback) {
   ([-1,0,1]).forEach(columnOffset => {
     ([-1,0,1]).forEach(rowOffset => {
-      const currentChar = mapStore.mapRows[playerStore.playerPosition[1] + rowOffset]?.[playerStore.playerPosition[0] + columnOffset]
-      const specialThing = getSpecialThing(currentChar, columnOffset, rowOffset)
+      const x = playerStore.playerPosition[0] + columnOffset
+      const y = playerStore.playerPosition[1] + rowOffset
+      const currentChar = mapStore.mapRows[y]?.[x]
+      const specialThing = getSpecialThing(currentChar, x, y)
       if(specialThing) {
         callback(specialThing)
       }
@@ -105,7 +132,7 @@ function sourroundingSpecialThingAction(callback) {
 }
 
 onKeyStroke(['e'], (e) => handleMapKeyInput(e, () => {
-  sourroundingSpecialThingAction((specialThing) => {
+  surroundingSpecialThingAction((specialThing) => {
     promptStore.currentMessage = {
       response: specialThing.label
     }
@@ -114,7 +141,7 @@ onKeyStroke(['e'], (e) => handleMapKeyInput(e, () => {
 
 function onAfterMove() {
   let foundThingToTalkTo = false
-  sourroundingSpecialThingAction((specialThing) => {
+  surroundingSpecialThingAction((specialThing) => {
     if(specialThing.canTalkTo) {
       foundThingToTalkTo = true
       promptStore.talkingTo = specialThing.id
@@ -126,32 +153,59 @@ function onAfterMove() {
 }
 
 onKeyStroke(['s', 'S', 'ArrowDown'], (e) => handleMapKeyInput(e, () => {
-  const cellType = getCellTypeAt(playerStore.playerPosition[0], playerStore.playerPosition[1]+1)
+  const newX = playerStore.playerPosition[0]
+  const newY = playerStore.playerPosition[1]+1
+  const cellType = getCellTypeAt(newX, newY)
   if(!cellType || !cellType.isPassable) {
+    return
+  }
+  const actor = getActorAt(newX, newY)
+  if(actor) {
     return
   }
   playerStore.playerPosition[1]++
   onAfterMove()
 }))
 onKeyStroke(['w', 'W', 'ArrowUp'], (e) => handleMapKeyInput(e, () => {
-  const cellType = getCellTypeAt(playerStore.playerPosition[0], playerStore.playerPosition[1]-1)
+  const newX = playerStore.playerPosition[0]
+  const newY = playerStore.playerPosition[1]-1
+
+  const cellType = getCellTypeAt(newX, newY)
   if(!cellType || !cellType.isPassable) {
+    return
+  }
+  const actor = getActorAt(newX, newY)
+  if(actor) {
     return
   }
   playerStore.playerPosition[1]--
   onAfterMove()
 }))
 onKeyStroke(['a', 'A', 'ArrowLeft'], (e) => handleMapKeyInput(e, () => {
-  const cellType = getCellTypeAt(playerStore.playerPosition[0] - 1, playerStore.playerPosition[1])
+  const newX = playerStore.playerPosition[0] - 1
+  const newY = playerStore.playerPosition[1]
+
+  const cellType = getCellTypeAt(newX, newY)
   if(!cellType || !cellType.isPassable) {
+    return
+  }
+  const actor = getActorAt(newX, newY)
+  if(actor) {
     return
   }
   playerStore.playerPosition[0]--
   onAfterMove()
 }))
 onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
-  const cellType = getCellTypeAt(playerStore.playerPosition[0] + 1, playerStore.playerPosition[1])
+  const newX = playerStore.playerPosition[0] + 1
+  const newY = playerStore.playerPosition[1]
+
+  const cellType = getCellTypeAt(newX, newY)
   if(!cellType || !cellType.isPassable) {
+    return
+  }
+  const actor = getActorAt(newX, newY)
+  if(actor) {
     return
   }
   playerStore.playerPosition[0]++

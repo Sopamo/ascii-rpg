@@ -1,7 +1,6 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import mapRows from '../assets/map.json'
 import { usePlayerStore } from '@/stores/playerStore'
-import { acceptHMRUpdate } from "pinia"
 
 export const specialThings = {
   '1': {
@@ -27,7 +26,7 @@ export const specialThings = {
     canTalkTo: true,
     label: 'cat',
     summary: 'Is a cat, sitting next to some tables and looking for some food. Really likes to be pet.'
-  },
+  }
 }
 
 function getSpecialThings(mapData: string[]): string[] {
@@ -42,11 +41,13 @@ function getSpecialThings(mapData: string[]): string[] {
   return relevantThings
 }
 
-function getSurroundingCells(map: string[], x: number, y: number) {
+function getSurroundingCells(map: string[], x: number, y: number, radius: number = 2) {
   const surroundingCells = []
-  for (let i = -2; i <= 2; i++) {
+  const start = -1 * radius
+  const end = radius
+  for (let i = start; i <= end; i++) {
     let row = ''
-    for (let j = -2; j <= 2; j++) {
+    for (let j = start; j <= end; j++) {
       const newX = x + j
       const newY = y + i
       if (newY === y && newX === x) {
@@ -62,17 +63,29 @@ function getSurroundingCells(map: string[], x: number, y: number) {
   return surroundingCells
 }
 
-export const useMapStore = defineStore('map', () => {
-  const getCurrentMapData = () => {
-    const playerStore = usePlayerStore()
-    const map = getSurroundingCells(mapRows, playerStore.playerPosition[0], playerStore.playerPosition[1])
+export const useMapStore = defineStore('map', {
+  state() {
     return {
-      mapString: map.join('\n'),
-      specialThings: getSpecialThings(map)
+      mapRows,
+      currentMapCenter: {
+        x: 12,
+        y: 12,
+      },
+    }
+  },
+  getters: {
+    visibleMap(): string[] {
+      return getSurroundingCells(mapRows, this.currentMapCenter.x, this.currentMapCenter.y, 12)
+    },
+    getCurrentMapData() {
+      const playerStore = usePlayerStore()
+      const map = getSurroundingCells(mapRows, playerStore.playerPosition[0], playerStore.playerPosition[1])
+      return {
+        mapString: map.join('\n'),
+        specialThings: getSpecialThings(map)
+      }
     }
   }
-
-  return { mapRows, getCurrentMapData }
 })
 
 
