@@ -33,8 +33,12 @@ function resetState() {
 
 function respawn() {
   const inventory = JSON.parse(JSON.stringify(playerStore.inventory))
+  const characterSheet = playerStore.characterSheet
+  const currentTime = playerStore.currentTime
   resetState()
   playerStore.inventory = inventory
+  playerStore.characterSheet = characterSheet
+  playerStore.currentTime = currentTime
   router.replace('/adventure')
 }
 function restart() {

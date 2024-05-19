@@ -50,9 +50,7 @@ function getSurroundingCells(map: string[], x: number, y: number, radius: number
     for (let j = start; j <= end; j++) {
       const newX = x + j
       const newY = y + i
-      if (newY === y && newX === x) {
-        row += 'x' // This is the player
-      } else if (newX >= 0 && newX < map[0].length && newY >= 0 && newY < map.length) {
+      if (newX >= 0 && newX < map[0].length && newY >= 0 && newY < map.length) {
         row += map[newY][newX]
       } else {
         row += '#'
@@ -71,18 +69,44 @@ export const useMapStore = defineStore('map', {
         x: 12,
         y: 12,
       },
+      mapSize: 24,
     }
   },
   getters: {
     visibleMap(): string[] {
       return getSurroundingCells(mapRows, this.currentMapCenter.x, this.currentMapCenter.y, 12)
     },
-    getCurrentMapData() {
+    playerActiveArea() {
       const playerStore = usePlayerStore()
-      const map = getSurroundingCells(mapRows, playerStore.playerPosition[0], playerStore.playerPosition[1])
+      const activeAreaRadius = 2
+      const map = getSurroundingCells(mapRows, playerStore.playerPosition[0], playerStore.playerPosition[1], activeAreaRadius)
+      // Set the x to the center so the llm knows where the player is
+      const playerRow = map[activeAreaRadius].split("")
+      playerRow[activeAreaRadius] = 'x'
+      map[activeAreaRadius] = playerRow.join("")
       return {
         mapString: map.join('\n'),
         specialThings: getSpecialThings(map)
+      }
+    },
+    globalTopLeftMapPosition(state) {
+      return {
+        x: state.currentMapCenter.x - state.mapSize / 2,
+        y: state.currentMapCenter.y - state.mapSize / 2,
+      }
+    }
+  },
+  actions: {
+    toGlobal(viewportPosition: {x: number, y: number}) {
+      return {
+        x: viewportPosition.x + this.globalTopLeftMapPosition.x,
+        y: viewportPosition.y + this.globalTopLeftMapPosition.y,
+      }
+    },
+    toViewport(globalPosition: {x: number, y: number}) {
+      return {
+        x: globalPosition.x - this.globalTopLeftMapPosition.x,
+        y: globalPosition.y - this.globalTopLeftMapPosition.y,
       }
     }
   }

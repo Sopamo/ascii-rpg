@@ -129,7 +129,7 @@ ${getCurrentTime()}
 Memory:
 ${getMemoryString()}
 Current map:
-${getCurrentMapData().mapString}`
+${playerActiveArea().mapString}`
 }
 
 export function getCurrentStatusEffects() {
@@ -153,7 +153,7 @@ export function getMapLegend() {
 + is a closed door
 = is a table
 x is the player
-${getCurrentMapData().specialThings.join("\n")}`
+${playerActiveArea().specialThings.join("\n")}`
 }
 
 type AvailableModels = "llama3-70b-8192" | "llama3-8b-8192"
@@ -196,8 +196,8 @@ export function getInventoryString() {
   return usePlayerStore().inventoryString
 }
 
-export function getCurrentMapData() {
-  return useMapStore().getCurrentMapData()
+export function playerActiveArea() {
+  return useMapStore().playerActiveArea
 }
 
 function getSuccessProbability() {

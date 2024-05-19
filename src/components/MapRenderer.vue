@@ -2,17 +2,16 @@
   <div class="s-map__wrapper">
     <div class="s-meta">{{ format(new Date(playerStore.currentTime * 1000), 'HH:mm') }} | {{ playerStore.hp }}/{{ playerStore.maxHp }} HP | {{playerStore.characterId}}</div>
     <div class="s-map" @mouseleave="setActiveCell(null)">
-      <div v-for="(row, rowIndex) in mapStore.visibleMap" :key="rowIndex" class="s-row">
-        <div :class="getClass(cell)" @mouseover="setActiveCell(cell)" v-for="(cell, columnIndex) in row" class="s-cell"
-             :key="columnIndex">
-          <template v-if="columnIndex === playerStore.playerPosition[0] && rowIndex === playerStore.playerPosition[1]">
+      <div v-for="row in mapRows" class="s-row">
+        <div :class="getClass(cell.char)" @mouseover="setActiveCell(cell.char)" v-for="cell in row" class="s-cell">
+          <template v-if="cell.isPlayerPosition">
             x
           </template>
-          <template v-else-if="getSpecialThing(cell, columnIndex, rowIndex)">
-            <img :src="`/img/${getSpecialThing(cell, columnIndex, rowIndex).id}Map.webp`" />
+          <template v-else-if="cell.specialThing">
+            <img :src="`/img/${cell.specialThing.id}Map.webp`" />
           </template>
           <template v-else>
-            {{ cell }}
+            {{ cell.char }}
           </template>
         </div>
       </div>
@@ -34,7 +33,7 @@ import { usePromptStore } from '@/stores/promptStore'
 import { usePlayerStore } from '@/stores/playerStore'
 import { specialThings, useMapStore } from '@/stores/mapStore'
 import Inventory from '@/components/Inventory.vue'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { format } from 'date-fns'
 import StatusEffects from '@/components/StatusEffects.vue'
 import { getCurrentEnvironment } from '@/environments/Environment'
@@ -58,26 +57,44 @@ const cellTypes: Record<string, {class: string, label: string, isPassable:boolea
   '=': { class: 's-wall', label: 'table', isPassable: true },
 }
 
+const mapRows = computed(() => {
+  return mapStore.visibleMap.map((row, rowIndex) => {
+    return row.split("").map((char, columnIndex) => {
+      return {
+        char: char,
+        class: getClass(char),
+        isPlayerPosition: isPlayerPosition(columnIndex, rowIndex),
+        specialThing: getSpecialThing(char, columnIndex, rowIndex),
+      }
+    })
+  })
+})
+
 watch(() => playerStore.playerPosition, () => {
   const movementArea = 6
   const [x, y] = playerStore.playerPosition
   const {x: mapX, y: mapY} = mapStore.currentMapCenter
   if(x > mapX + movementArea) {
-    mapStore.currentMapCenter.x++
+    mapStore.currentMapCenter.x = Math.min(mapStore.mapRows[0].length, mapStore.currentMapCenter.x + 1)
   }
   if(x < mapX - movementArea) {
-    mapStore.currentMapCenter.x--
+    mapStore.currentMapCenter.x = Math.max(mapStore.mapSize / 2, mapStore.currentMapCenter.x - 1)
   }
   if(y > mapY + movementArea) {
-    mapStore.currentMapCenter.y++
+    mapStore.currentMapCenter.y = Math.min(mapStore.mapRows.length, mapStore.currentMapCenter.y + 1)
   }
   if(y < mapY - movementArea) {
-    mapStore.currentMapCenter.y--
+    mapStore.currentMapCenter.y = Math.max(mapStore.mapSize / 2, mapStore.currentMapCenter.y - 1)
   }
 }, {
   deep: true,
   immediate: true,
 })
+
+function isPlayerPosition(viewportX: number, viewportY: number) {
+  const globalPosition = mapStore.toGlobal({x: viewportX, y: viewportY})
+  return globalPosition.x === playerStore.playerPosition[0] && globalPosition.y === playerStore.playerPosition[1]
+}
 
 function getClass(type: string) {
   if (!cellTypes[type]) {
@@ -90,15 +107,16 @@ function setActiveCell(cellType: string) {
   activeCell.value = cellType
 }
 
-function getActorAt(x: number, y: number) {
-  return getCurrentEnvironment().getPhysicalActors().find(actor => actor.position.x === x && actor.position.y === y)
+function getActorAt(globalX: number, globalY: number) {
+  return getCurrentEnvironment().getPhysicalActors().find(actor => actor.position.x === globalX && actor.position.y === globalY)
 }
 
 function getSpecialThing(char: string, x: number, y: number) {
   if(Object.keys(specialThings).includes(char)) {
     return specialThings[char]
   }
-  const actor = getActorAt(x, y)
+  const globalPosition = mapStore.toGlobal({x, y})
+  const actor = getActorAt(globalPosition.x, globalPosition.y)
   if(actor) {
     return actor
   }
