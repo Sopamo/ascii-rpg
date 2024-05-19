@@ -5,6 +5,12 @@ import { useMapStore } from '@/stores/mapStore'
 import { usePromptStore } from '@/stores/promptStore'
 import { format } from 'date-fns'
 
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold
+} from '@google/generative-ai'
+
 export async function sendDungeonMasterMessage(userMessage: string) {
   const prompt = `You are a dungeon master, that gets presented a map as ascii art and an action that the player wants to take.
 You respond with json, that contains a short funny narrator like sentence that describes what happens in the field "response". If you want, you can address the player with "you ...".
@@ -133,7 +139,7 @@ ${playerActiveArea().mapString}`
 }
 
 export function getCurrentStatusEffects() {
-  if(!usePlayerStore().statusEffects.length) {
+  if (!usePlayerStore().statusEffects.length) {
     return '-'
   }
   return usePlayerStore().statusEffects.map(effect => {
@@ -153,33 +159,91 @@ export function getMapLegend() {
 + is a closed door
 = is a table
 x is the player
-${playerActiveArea().specialThings.join("\n")}`
+${playerActiveArea().specialThings.join('\n')}`
 }
 
-type AvailableModels = "llama3-70b-8192" | "llama3-8b-8192"
+type AvailableModels = 'llama3-70b-8192' | 'llama3-8b-8192'
 
-export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = "llama3-70b-8192") {
+export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
+  let responseJson = ''
+  if (import.meta.env.VITE_LLM_SERVICE === 'google') {
+    responseJson = sendGeminiMessage(systemPrompt, userMessage)
+  } else {
+    responseJson = sendGroqMessage(systemPrompt, userMessage, model)
+  }
+  console.info({
+    userMessage,
+    responseJson
+  })
+  return responseJson
+}
+
+async function sendGeminiMessage(systemPrompt: string, userMessage: string) {
+  const apiKey = import.meta.env.VITE_GEMINI_KEY;
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash-latest",
+    systemInstruction: systemPrompt,
+  });
+
+  const generationConfig = {
+    temperature: 0,
+    topP: 0.95,
+    topK: 64,
+    maxOutputTokens: 8192,
+    responseMimeType: "application/json",
+  };
+
+  const safetySettings = [
+    {
+      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+      threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+    {
+      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+      threshold: HarmBlockThreshold.BLOCK_NONE,
+    },
+    {
+      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+    },
+    {
+      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+    },
+  ];
+  const chatSession = model.startChat({
+    generationConfig,
+    safetySettings,
+  });
+
+  const result = await chatSession.sendMessage(userMessage);
+  const resultJson = JSON.parse(result.response.text())
+  return resultJson
+}
+
+async function sendGroqMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
   const groq = new Groq({
     apiKey: useSettingsStore().getGroqApiKey(),
-    dangerouslyAllowBrowser: true,
-  });
+    dangerouslyAllowBrowser: true
+  })
   const completion = await groq.chat.completions.create({
     messages: [
       {
-        role: "system",
+        role: 'system',
         content: systemPrompt
       },
       {
-        role: "user",
+        role: 'user',
         content: userMessage
       }
     ],
-    model,
-  });
+    model
+  })
   const responseJson = extractJson(completion.choices[0]?.message?.content)
   console.info({
     userMessage,
-    responseJson,
+    responseJson
   })
   return responseJson
 }
@@ -189,7 +253,7 @@ export function getCurrentTime() {
 }
 
 export function getMemoryString() {
-  return usePromptStore().memory.length ? usePromptStore().memory.join("\n") : '-'
+  return usePromptStore().memory.length ? usePromptStore().memory.join('\n') : '-'
 }
 
 export function getInventoryString() {
@@ -205,47 +269,47 @@ function getSuccessProbability() {
   if (Math.random() >= 0.95) {
     successProbability = 1
   }
-  console.log({successProbability})
+  console.log({ successProbability })
   return successProbability
 }
 
 export function getLastDungeonMasterMessage() {
   let lastSystemResponse = ''
-  const lastSystemHistoryEntry = [...usePromptStore().messageHistory].reverse().find(entry => entry.role==='system')
-  if(lastSystemHistoryEntry) {
-    lastSystemResponse = "Previous dungeon master message: \n" + lastSystemHistoryEntry.content.response
+  const lastSystemHistoryEntry = [...usePromptStore().messageHistory].reverse().find(entry => entry.role === 'system')
+  if (lastSystemHistoryEntry) {
+    lastSystemResponse = 'Previous dungeon master message: \n' + lastSystemHistoryEntry.content.response
   }
   return lastSystemResponse
 }
 
 function extractJson(str: string): any {
-  const stack = [];
-  let jsonStart = -1;
-  let jsonEnd = -1;
+  const stack = []
+  let jsonStart = -1
+  let jsonEnd = -1
 
   for (let i = 0; i < str.length; i++) {
     if (str[i] === '{') {
       if (stack.length === 0) {
-        jsonStart = i;
+        jsonStart = i
       }
-      stack.push('{');
+      stack.push('{')
     } else if (str[i] === '}') {
-      stack.pop();
+      stack.pop()
       if (stack.length === 0) {
-        jsonEnd = i;
-        break;
+        jsonEnd = i
+        break
       }
     }
   }
 
   if (jsonStart !== -1 && jsonEnd !== -1) {
-    const jsonStr = str.substring(jsonStart, jsonEnd + 1);
+    const jsonStr = str.substring(jsonStart, jsonEnd + 1)
     try {
-      return JSON.parse(jsonStr);
+      return JSON.parse(jsonStr)
     } catch (e) {
-      return null; // or throw an error, depending on your use case
+      return null // or throw an error, depending on your use case
     }
   } else {
-    return null; // or throw an error, depending on your use case
+    return null // or throw an error, depending on your use case
   }
 }
