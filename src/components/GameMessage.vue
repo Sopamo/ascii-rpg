@@ -3,13 +3,13 @@
     <img class="s-avatar" :src="promptStore.talkingTo ? `/img/${promptStore.talkingTo}.webp` : '/img/lake.webp'" />
     <div class="message">
       <div>{{ promptStore.currentMessage.response }}</div>
-      <div v-if="currentGeneralUpdates.inventoryActions?.add" class="s-itemsAdded">
-        <div v-for="item in currentGeneralUpdates.inventoryActions.add" :key="item" class="s-itemsAdded__item">
+      <div v-if="promptStore.currentMessage.inventoryActions?.add" class="s-itemsAdded">
+        <div v-for="item in promptStore.currentMessage.inventoryActions.add" :key="item" class="s-itemsAdded__item">
           + {{ item }}
         </div>
       </div>
-      <div v-if="currentGeneralUpdates.inventoryActions?.remove" class="s-itemsRemoved">
-        <div v-for="item in currentGeneralUpdates.inventoryActions.remove" :key="item"
+      <div v-if="promptStore.currentMessage.inventoryActions?.remove" class="s-itemsRemoved">
+        <div v-for="item in promptStore.currentMessage.inventoryActions.remove" :key="item"
              class="s-itemsRemoved__item">
           - {{ item }}
         </div>

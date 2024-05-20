@@ -19,7 +19,7 @@ export const specialThings = {
     id: 'seaMonster',
     canTalkTo: false,
     label: 'sea monster',
-    summary: 'Is a sea monster, vulnerable against rust. You don\'t stand a chance against it without any weapons, it would just kill you. Hitting it with a rusty sword is super effective though. Hitting it once or twice would kill it. If you do manage to kill it, you get plentyful treasure (+100 coins).'
+    summary: 'Is a mighty sea monster, vulnerable against rust. If the player attacks it without a proper weapon it responds by explicitly and seriously injuring them. Hitting it with a rusty sword is super effective though. Hitting it once or twice would kill it. If you do manage to kill it, you get plentyful treasure (+100 coins).'
   },
   '4': {
     id: 'mischievousCat',

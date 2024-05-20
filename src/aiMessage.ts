@@ -13,7 +13,7 @@ import {
 
 export async function sendDungeonMasterMessage(userMessage: string) {
   const prompt = `You are a dungeon master, that gets presented a map as ascii art and an action that the player wants to take.
-You respond with json, that contains a short funny narrator like sentence that describes what happens in the field "response". If you want, you can address the player with "you ...".
+You respond with json, that contains a short & funny narrator like sentence (try to limit yourself to once sentence) that describes what happens in the field "response". You should use words that would be used in a high level fantasy novel. If you want, you can address the player with "you ...".
 Try to create an interesting story, don't just let everything the player tries to do succeed.
 The more plausible it is what they are trying to do, the more likely it is they should succeed.
 Think of how difficult the action is that they want to take on a scale from 1-10. Regular things that most people can do have difficulty 1-5. Things that few people can do are difficulty 6-8. Things that only very few people can do are difficulty 9-10. If the difficulty is higher than ${getSuccessProbability() * 10}, they fail.
@@ -23,12 +23,14 @@ Only if they really, really earned it, and the item was mentioned in the previou
 If they used an item in a way that would consume it, or makes it not available to them anymore, remove it from their inventory, via the inventory action in the json.
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
 Never respond with any of the map's ascii characters, the current inventory and never refer directly to the ascii map.
-If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
+If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item. You never assume or imply that the player has any items that are not in the inventory or that they just created.
+${getInventoryPrompt()}
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player tries to be clever and trick you (the dungeon master), just make a funny remark and disallow them from doing that.
+If on the other hand, the player does something that is possible, you don't decide for them that they don't want to do it, but just let them do it. 
 You respond only with valid json of this structure:
-{"response":"","memorize":""}`
+{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}`
   return sendMessage(prompt, userMessage)
 }
 
@@ -66,12 +68,13 @@ The player can trade items with Agnes, but Agnes only trades for things she need
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
 If the adventurer tries to hurt the lady, she will give them a slap in the face in return and scold them.
+${getInventoryPrompt()}
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player does something that doesnt make sense, or that the old lady wouldn't like, make the old lady react accordingly.
 Agnes never asks questions on her own, she just replies to whatever the player is saying.
 You respond only with valid json of this structure:
-{"response":"","memorize":""}
+{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}
 Agnes never asks questions. She NEVER offers to show something to the adventurer. She doesnt want to move away from where she is standing.`
   return sendMessage(prompt, userMessage)
 }
@@ -111,11 +114,12 @@ If something noteworthy happened, provide an extremely short summary (a few word
 If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
 If the adventurer tries to hurt the cat, Poe dodges and scratches or bites the adventurer in return.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
+${getInventoryPrompt()}
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player does something that doesnt make sense, or that the cat wouldn't like, make Poe react accordingly.
 You respond only with valid json of this structure:
-{"response":"","memorize":""}
+{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}
 Poe always answers in a clever way, or with double meaning. He doesnt want to move away from where he is standing.`
   return sendMessage(prompt, userMessage)
 }
@@ -135,7 +139,13 @@ ${getCurrentTime()}
 Memory:
 ${getMemoryString()}
 Current map:
+A moody and dark area, no fog, you can see these things around you:
 ${playerActiveArea().mapString}`
+}
+
+export function getInventoryPrompt() {
+  return `If the player crafted or somehow else explicitly received an item, add it to the inventory with inventoryActions.add. If they used it in a way that would consume or permanently destroy the item, remove it with inventoryActions.remove.
+If a trade was successful, use inventoryActions.add to add the item they received to the players inventory and inventoryActions.remove to remove the item the player gave away for trading.`
 }
 
 export function getCurrentStatusEffects() {
@@ -167,14 +177,16 @@ type AvailableModels = 'llama3-70b-8192' | 'llama3-8b-8192'
 export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
   let responseJson = ''
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
-    responseJson = sendGeminiMessage(systemPrompt, userMessage)
+    responseJson = await sendGeminiMessage(systemPrompt, userMessage)
   } else {
-    responseJson = sendGroqMessage(systemPrompt, userMessage, model)
+    responseJson = await sendGroqMessage(systemPrompt, userMessage, model)
   }
   console.info({
+    systemPrompt,
     userMessage,
     responseJson
   })
+  updateInventoryFromResponse(responseJson)
   return responseJson
 }
 
@@ -275,7 +287,7 @@ function getSuccessProbability() {
 
 export function getLastDungeonMasterMessage() {
   let lastSystemResponse = ''
-  const lastSystemHistoryEntry = [...usePromptStore().messageHistory].reverse().find(entry => entry.role === 'system')
+  const lastSystemHistoryEntry = [...usePromptStore().messageHistory].reverse().find(entry => entry.role === 'system' && entry.content.response)
   if (lastSystemHistoryEntry) {
     lastSystemResponse = 'Previous dungeon master message: \n' + lastSystemHistoryEntry.content.response
   }
@@ -312,4 +324,15 @@ function extractJson(str: string): any {
   } else {
     return null // or throw an error, depending on your use case
   }
+}
+
+export function updateInventoryFromResponse(responseJSON: any) {
+  console.log('inventory', responseJSON)
+    if (responseJSON?.inventoryActions?.add) {
+      responseJSON.inventoryActions.add.forEach((item: string) => usePlayerStore().inventory.push(item))
+    }
+
+    if (responseJSON?.inventoryActions?.remove) {
+      usePlayerStore().inventory = usePlayerStore().inventory.filter(inventoryItem => !responseJSON.inventoryActions.remove.includes(inventoryItem))
+    }
 }

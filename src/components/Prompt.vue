@@ -51,7 +51,9 @@ async function submit() {
     return
   }
   const response = await promptStore.submitPrompt()
-  speak(response.response)
+  if(response.response) {
+    speak(response.response)
+  }
   inputRef.value?.focus()
 }
 

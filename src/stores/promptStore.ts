@@ -22,7 +22,7 @@ export const usePromptStore = defineStore('prompt', {
   },
   actions: {
     updateMemoryFromResponse(responseJSON: any, talkingTo: null|string = null) {
-      if (responseJSON.memorize) {
+      if (responseJSON?.memorize) {
         let memo = responseJSON.memorize
         if(talkingTo) {
           memo += ` (talking to: ${talkingTo})`
@@ -57,7 +57,9 @@ export const usePromptStore = defineStore('prompt', {
             break
           default:
             responseJSON = await sendDungeonMasterMessage(usePromptStore().prompt)
-            this.messageHistory.push({ role: 'system', content: responseJSON })
+            if(responseJSON.response) {
+              this.messageHistory.push({ role: 'system', content: responseJSON })
+            }
             this.updateMemoryFromResponse(responseJSON)
             events.emit('dungeonMasterSpoke', {
               message: responseJSON.response

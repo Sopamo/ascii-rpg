@@ -36,19 +36,8 @@ export class GeneralStateUpdater extends Actor {
   async runStep(message: string) {
     const changes = await this.calculateChanges(message)
     this.currentUpdates.value = changes
-    this.updateInventoryFromResponse(changes)
     this.updateTimeFromResponse(changes)
     this.updateHPFromResponse(changes)
-  }
-
-  updateInventoryFromResponse(responseJSON: ResponseJSON) {
-    if (responseJSON?.inventoryActions?.add) {
-      responseJSON.inventoryActions.add.forEach((item: string) => usePlayerStore().inventory.push(item))
-    }
-
-    if (responseJSON?.inventoryActions?.remove) {
-      usePlayerStore().inventory = usePlayerStore().inventory.filter(inventoryItem => !responseJSON.inventoryActions.remove.includes(inventoryItem))
-    }
   }
 
   updateTimeFromResponse(response: ResponseJSON) {
@@ -74,10 +63,9 @@ export class GeneralStateUpdater extends Actor {
 It's your job to determine different state updates.
 You respond with json, which contains HP changes, player inventory changes and how much time has passed.
 Estimate how much time has passed by doing what the Dungeon Master said and output that in the JSON in the "minutesPassed" key.
-If fitting the action, you can (rarely) add or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
-If a trade was successful, use inventoryActions.add to add the item they received to the players inventory and inventoryActions.remove to remove the item the player gave away for trading.
+If fitting the action, you can add or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON. If you are being hit by anything that would hurt you, you loose HP.
 You respond only with valid json of this structure:
-{"inventoryActions":{"add": ["itemName"], "remove": ["itemName"]},"minutesPassed": 30, "hpChange": 0}`
+{"minutesPassed": 30, "hpChange": 0}`
 
     const currentStatus = `Player character sheet:
 ${usePlayerStore().characterSheet}
