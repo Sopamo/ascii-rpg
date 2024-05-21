@@ -47,6 +47,7 @@ window.playerStore = playerStore
 
 const cellTypes: Record<string, {class: string, label: string, isPassable:boolean}> = {
   '.': { class: 's-floor', label: 'floor', isPassable: true },
+  ',': { class: 's-floor', label: 'floor', isPassable: true },
   ':': { class: 's-floor', label: 'impassable terrain', isPassable: false },
   '#': { class: 's-wall', label: 'wall', isPassable: false },
   '~': { class: 's-water', label: 'water', isPassable: true },
