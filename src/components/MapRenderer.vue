@@ -47,7 +47,7 @@ window.playerStore = playerStore
 
 const cellTypes: Record<string, {class: string, label: string, isPassable:boolean}> = {
   '.': { class: 's-floor', label: 'floor', isPassable: true },
-  ',': { class: 's-floor', label: 'floor', isPassable: true },
+  ',': { class: 's-path', label: 'path', isPassable: true },
   ':': { class: 's-floor', label: 'impassable terrain', isPassable: false },
   '#': { class: 's-wall', label: 'wall', isPassable: false },
   '~': { class: 's-water', label: 'water', isPassable: true },
@@ -265,17 +265,21 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
 }
 
 .s-water {
-  background: #CCC9E7;
-  color: white;
+  background: #012340;
+  color: #021e36;
 }
 
 .s-floor {
-  background: #212738;
+  background: #27342b;
+  color: #1d2620;
+}
+.s-path {
+  background: #4b4b4b;
 }
 
 .s-forest {
-  background: #248232;
-  color: #152614;
+  background: #025939;
+  color: #023422;
 }
 
 .s-wall {
@@ -284,8 +288,8 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
 }
 
 .s-foliage {
-  background: #328b3f;
-  color: #264324;
+  background: #3C724A;
+  color: #2e5638;
 }
 .s-cell {
   width: 32px;
