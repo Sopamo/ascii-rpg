@@ -5,7 +5,7 @@
       <div v-for="row in mapRows" class="s-row">
         <div :class="getClass(cell.char)" @mouseover="setActiveCell(cell.char)" v-for="cell in row" class="s-cell">
           <template v-if="cell.isPlayerPosition">
-            x
+            <img :src="`/img/herbalistMap.webp`" />
           </template>
           <template v-else-if="cell.specialThing">
             <img :src="`/img/${cell.specialThing.id}Map.webp`" />
@@ -266,29 +266,30 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
 
 .s-water {
   background: #012340;
-  color: #021e36;
+  color: #072c4b;
 }
 
 .s-floor {
-  background: #27342b;
-  color: #1d2620;
+  background: #222625;
+  color: #1a211c;
 }
 .s-path {
-  background: #4b4b4b;
+  background: #262a29;
+  color: #3e4242;
 }
 
 .s-forest {
-  background: #025939;
-  color: #023422;
+  background: #1c1f1f;
+  color: #594D3E;
 }
 
 .s-wall {
-  background: #161B26;
-  color: #11141D;
+  background: #1c2321;
+  color: #2f3a37;
 }
 
 .s-foliage {
-  background: #3C724A;
+  background: #1c2d22;
   color: #2e5638;
 }
 .s-cell {
