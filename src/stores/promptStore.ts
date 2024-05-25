@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { sendDungeonMasterMessage, sendMischievousCatMessage, sendOldLadyMessage } from '@/aiMessage'
 import { events } from '@/events'
 import { acceptHMRUpdate } from "pinia"
+import { getCurrentEnvironment } from '@/environments/Environment'
 
 type MessageHistoryEntry = {
   role: 'user' | 'system'
@@ -17,7 +18,7 @@ export const usePromptStore = defineStore('prompt', {
       isFocused: false,
       currentMessage: null as string | null,
       memory: [] as string[],
-      talkingTo: null as null | 'oldLady' | 'mischievousCat'
+      talkingTo: null as null | string
     }
   },
   actions: {
@@ -38,34 +39,45 @@ export const usePromptStore = defineStore('prompt', {
         events.emit("playerSpoke", {
           message: this.prompt
         })
+        this.isLoading = false
         switch(this.talkingTo) {
           case "oldLady":
             responseJSON = await sendOldLadyMessage(usePromptStore().prompt)
             this.updateMemoryFromResponse(responseJSON, 'oldLady')
-            events.emit('npcSpoke', {
-              actor: 'oldLady',
-              message: responseJSON.response
-            })
+            if(responseJSON.response) {
+              events.emit('npcSpoke', {
+                actor: 'oldLady',
+                message: responseJSON.response
+              })
+            }
             break
           case "mischievousCat":
             responseJSON = await sendMischievousCatMessage(usePromptStore().prompt)
             this.updateMemoryFromResponse(responseJSON, 'mischievousCat')
-            events.emit('npcSpoke', {
-              actor: 'mischievousCat',
-              message: responseJSON.response
-            })
+            if(responseJSON.response) {
+              events.emit('npcSpoke', {
+                actor: 'mischievousCat',
+                message: responseJSON.response
+              })
+            }
             break
           default:
-            responseJSON = await sendDungeonMasterMessage(usePromptStore().prompt)
-            if(responseJSON.response) {
-              this.messageHistory.push({ role: 'system', content: responseJSON })
+            const actor = getCurrentEnvironment().actors.find(actor => actor.id === this.talkingTo)
+            if(actor && actor.handlePlayerMessage) {
+              responseJSON = await actor.handlePlayerMessage(this.prompt)
+              this.updateMemoryFromResponse(responseJSON)
+            } else {
+              responseJSON = await sendDungeonMasterMessage(usePromptStore().prompt)
+              this.updateMemoryFromResponse(responseJSON)
+              events.emit('dungeonMasterSpoke', {
+                message: responseJSON.response
+              })
             }
-            this.updateMemoryFromResponse(responseJSON)
-            events.emit('dungeonMasterSpoke', {
-              message: responseJSON.response
-            })
         }
-        this.messageHistory.push({ role: 'system', content: responseJSON })
+        console.log('DONE', responseJSON)
+        if(responseJSON.response) {
+          this.messageHistory.push({ role: 'system', content: responseJSON })
+        }
         this.prompt = ''
       } catch (e) {
         alert('The whole world froze for a second. Nothing happened. Please try again.')

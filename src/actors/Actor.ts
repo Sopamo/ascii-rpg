@@ -2,6 +2,7 @@ export class Actor {
   id: string = ''
   eventHandlers = []
   position: undefined | { x: number, y: number } = undefined
+  canTalkTo: boolean = false
 
   constructor() {
 

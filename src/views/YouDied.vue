@@ -13,13 +13,17 @@
 import { usePlayerStore } from '@/stores/playerStore'
 import { usePromptStore } from '@/stores/promptStore'
 import { useRouter } from 'vue-router'
+import { useMapStore } from '@/stores/mapStore'
 
 const playerStore = usePlayerStore()
 const promptStore = usePromptStore()
+const mapStore = useMapStore()
 const router = useRouter()
 if(!playerStore.characterId) {
-  router.replace('/characters')
+  console.log(playerStore)
+  restart(true)
 }
+
 
 function resetState() {
   playerStore.$reset()
@@ -29,22 +33,28 @@ function resetState() {
   promptStore.memory = []
   promptStore.currentMessage = null
   playerStore.playerPosition = [13,13]
+  mapStore.currentMapCenter.x = 12
+  mapStore.currentMapCenter.y = 12
 }
 
 function respawn() {
   const inventory = JSON.parse(JSON.stringify(playerStore.inventory))
   const characterSheet = playerStore.characterSheet
+  const characterId = playerStore.characterId
   const currentTime = playerStore.currentTime
   resetState()
   playerStore.inventory = inventory
+  playerStore.characterId = characterId
   playerStore.characterSheet = characterSheet
   playerStore.currentTime = currentTime
   router.replace('/adventure')
 }
-function restart() {
-  if(confirm('Reset your inventory and start a completely new adventure?'))
-  resetState()
-  router.replace('/characters')
+async function restart(force: boolean = false) {
+  if(force || confirm('Reset your inventory and start a completely new adventure?')) {
+    resetState()
+    await router.replace('/characters')
+    window.location.reload()
+  }
 }
 </script>
 

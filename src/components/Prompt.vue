@@ -27,6 +27,7 @@ import { onKeyStroke } from '@vueuse/core'
 import { usePlayerStore } from '@/stores/playerStore'
 import { speak } from '@/playAudio'
 import { specialThings } from '@/stores/mapStore'
+import { getCurrentEnvironment } from '@/environments/Environment'
 
 const promptStore = usePromptStore()
 const inputRef = ref<null | HTMLInputElement>(null)
@@ -62,10 +63,14 @@ const talkingToLabel = computed(() => {
     return null
   }
   const specialThing = Object.values(specialThings).find(thing => thing.id === promptStore.talkingTo)
-  if(!specialThing) {
-    return null
+  if(specialThing) {
+    return specialThing.label
   }
-  return specialThing.label
+  const specialThingActor = getCurrentEnvironment().actors.find(actor => actor.id === promptStore.talkingTo)
+  if(specialThingActor) {
+    return specialThingActor.label
+  }
+  return null
 })
 
 </script>

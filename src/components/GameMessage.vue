@@ -2,7 +2,7 @@
   <div v-if="promptStore.currentMessage" class="system-message">
     <img class="s-avatar" :src="promptStore.talkingTo ? `/img/${promptStore.talkingTo}.webp` : '/img/lake.webp'" />
     <div class="message">
-      <div>{{ promptStore.currentMessage.response }}</div>
+      <div style="white-space: pre-wrap">{{ promptStore.currentMessage.response }}</div>
       <div v-if="promptStore.currentMessage.inventoryActions?.add" class="s-itemsAdded">
         <div v-for="item in promptStore.currentMessage.inventoryActions.add" :key="item" class="s-itemsAdded__item">
           + {{ item }}

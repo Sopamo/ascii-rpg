@@ -120,7 +120,7 @@ ${getLastDungeonMasterMessage()}
 If the player does something that doesnt make sense, or that the cat wouldn't like, make Poe react accordingly.
 You respond only with valid json of this structure:
 {"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}
-Poe always answers in a clever way, or with double meaning. He doesnt want to move away from where he is standing.`
+You always answers in a clever way that sounds like a very well-read cat, no matter what the player says. You dont want to move away from where you are standing.`
   return sendMessage(prompt, userMessage)
 }
 
@@ -175,7 +175,7 @@ ${playerActiveArea().specialThings.join('\n')}`
 type AvailableModels = 'llama3-70b-8192' | 'llama3-8b-8192'
 
 export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
-  let responseJson = ''
+  let responseJson
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
     responseJson = await sendGeminiMessage(systemPrompt, userMessage)
   } else {
@@ -187,7 +187,7 @@ export async function sendMessage(systemPrompt: string, userMessage: string, mod
     responseJson
   })
   updateInventoryFromResponse(responseJson)
-  return responseJson
+  return responseJson as Record<string, any>
 }
 
 async function sendGeminiMessage(systemPrompt: string, userMessage: string) {

@@ -43,12 +43,56 @@
 
 ### The Tower
 
+### The Wilderness
+#### The sphinx
+The sphinx blocks the way.
+It offers the player to either walk away unscathed, solve the riddle it's giving them and be allowed to pass, or be attacked if they answer incorrectly.
+The riddles are:
+
+"Flowing from trees, sweet and sticky, a treat so fine,
+What essence could this be, in a dark bottle, a hidden sign?
+
+Found in the midst of 'bell' and 'tall', it stands upright and true,
+Amidst words like 'silent' and 'pearl', it stands firm, straight as a sentinel too.
+
+The sound of movement, continuous and flowing,
+It’s the tail end of verbs where life is showing.
+
+Now string them together and answer this thing,
+What young tree is sprouting, ready for spring?
+sapling"
+
+
+"Amid eerie whispers and ghostly cheer,
+Find the beginning of laughter you fear.
+
+Through the raven’s gaze, where night does descend,
+Look to its core, where shadows extend.
+
+In the haunted woods, beneath the elder tree,
+The final sound of the eldest sets you free.
+
+Now string them together and speak to the night,
+Which fragrant bloom calms with its sight?"
+
+
+"First think of what comes before 'possible',
+When nothing seems right and cannot be done.
+
+Consider the start of the time when the sun starts to shine,
+It's early, not late, and often quite fine.
+
+Lastly, a part of 'crystal' you must find,
+At the end, it's sharp and shines in your mind.
+
+Now string them together and give what you're called,
+A word that means never to perish, always enthralled."
+
 
 ### The Town
 #### The angry person
 They are angry because their close relative died because of Elara's accident.
 
-### The Wilderness
 
 
 https://notimetoplay.org/engines/ascii-mapper/editor/index.html

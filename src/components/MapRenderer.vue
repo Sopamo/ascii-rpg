@@ -61,11 +61,12 @@ const cellTypes: Record<string, {class: string, label: string, isPassable:boolea
 const mapRows = computed(() => {
   return mapStore.visibleMap.map((row, rowIndex) => {
     return row.split("").map((char, columnIndex) => {
+      const globalPosition = mapStore.toGlobal({x: columnIndex, y: rowIndex})
       return {
         char: char,
         class: getClass(char),
-        isPlayerPosition: isPlayerPosition(columnIndex, rowIndex),
-        specialThing: getSpecialThing(char, columnIndex, rowIndex),
+        isPlayerPosition: isPlayerPosition(globalPosition.x, globalPosition.y),
+        specialThing: getSpecialThing(char, globalPosition.x, globalPosition.y),
       }
     })
   })
@@ -92,9 +93,8 @@ watch(() => playerStore.playerPosition, () => {
   immediate: true,
 })
 
-function isPlayerPosition(viewportX: number, viewportY: number) {
-  const globalPosition = mapStore.toGlobal({x: viewportX, y: viewportY})
-  return globalPosition.x === playerStore.playerPosition[0] && globalPosition.y === playerStore.playerPosition[1]
+function isPlayerPosition(globalX: number, globalY: number) {
+  return globalX === playerStore.playerPosition[0] && globalY === playerStore.playerPosition[1]
 }
 
 function getClass(type: string) {
@@ -112,12 +112,11 @@ function getActorAt(globalX: number, globalY: number) {
   return getCurrentEnvironment().getPhysicalActors().find(actor => actor.position.x === globalX && actor.position.y === globalY)
 }
 
-function getSpecialThing(char: string, x: number, y: number) {
+function getSpecialThing(char: string, globalX: number, globalY: number) {
   if(Object.keys(specialThings).includes(char)) {
     return specialThings[char]
   }
-  const globalPosition = mapStore.toGlobal({x, y})
-  const actor = getActorAt(globalPosition.x, globalPosition.y)
+  const actor = getActorAt(globalX, globalY)
   if(actor) {
     return actor
   }
@@ -139,10 +138,10 @@ function getCellTypeAt(x: number, y: number) {
 function surroundingSpecialThingAction(callback) {
   ([-1,0,1]).forEach(columnOffset => {
     ([-1,0,1]).forEach(rowOffset => {
-      const x = playerStore.playerPosition[0] + columnOffset
-      const y = playerStore.playerPosition[1] + rowOffset
-      const currentChar = mapStore.mapRows[y]?.[x]
-      const specialThing = getSpecialThing(currentChar, x, y)
+      const globalX = playerStore.playerPosition[0] + columnOffset
+      const globalY = playerStore.playerPosition[1] + rowOffset
+      const currentChar = mapStore.mapRows[globalY]?.[globalX]
+      const specialThing = getSpecialThing(currentChar, globalX, globalY)
       if(specialThing) {
         callback(specialThing)
       }
@@ -162,6 +161,7 @@ function onAfterMove() {
   let foundThingToTalkTo = false
   surroundingSpecialThingAction((specialThing) => {
     if(specialThing.canTalkTo) {
+      console.log(specialThing)
       foundThingToTalkTo = true
       promptStore.talkingTo = specialThing.id
     }
