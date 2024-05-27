@@ -10,6 +10,7 @@ import {
   HarmCategory,
   HarmBlockThreshold
 } from '@google/generative-ai'
+import { addMessage } from '@/firebase'
 
 export async function sendDungeonMasterMessage(userMessage: string) {
   const prompt = `You are a dungeon master, that gets presented a map as ascii art and an action that the player wants to take.
@@ -185,6 +186,11 @@ export async function sendMessage(systemPrompt: string, userMessage: string, mod
     systemPrompt,
     userMessage,
     responseJson
+  })
+  addMessage({
+    systemPrompt,
+    userMessage,
+    responseJson,
   })
   updateInventoryFromResponse(responseJson)
   return responseJson as Record<string, any>

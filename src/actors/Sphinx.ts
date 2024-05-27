@@ -1,9 +1,7 @@
 import { Actor } from '@/actors/Actor'
 import { events } from '@/events'
-import { playAudio } from '@/helpers'
 import { reactive } from 'vue'
-import { usePlayerStore } from '@/stores/playerStore'
-import { getCurrentStatusEffects, getCurrentTime, getInventoryString, sendMessage } from '@/aiMessage'
+import { sendMessage } from '@/aiMessage'
 import { usePromptStore } from '@/stores/promptStore'
 
 export class Sphinx extends Actor {
@@ -12,7 +10,7 @@ export class Sphinx extends Actor {
   eventHandlerSetup = false
   position = reactive({ x: 45, y: 33 })
   canTalkTo = true
-  hasAnsweredCorrectly = true
+  hasAnsweredCorrectly = false
 
   async handlePlayerMessage(message: string) {
       const responseJSON = await this.respond(message)
