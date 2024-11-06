@@ -42,6 +42,11 @@
 - He mentions that the old lady might have something to help fight the monster
 
 ### The Tower
+#### Gorvoth (old man)
+- Mysterious necromancer
+- Tells Poe he revived him in order for him to "actually live"
+- Poe ponders what it means to actually live
+
 
 ### The Wilderness
 #### The sphinx

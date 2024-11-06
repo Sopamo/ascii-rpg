@@ -31,7 +31,7 @@ export class NecromancerDoor extends Actor {
 
   async respond(message: string) {
     const prompt = `You are a dungeon master.
-    You respond with json, that contains a short & funny narrator like sentence (try to limit yourself to once sentence) that describes what happens in the field "response". You should use words that would be used in a high level fantasy novel. If you want, you can address the player with "you ...".
+    You respond with json, that contains a short & funny narrator like sentence (try to limit yourself to one sentence) that describes what happens in the field "response". You should use words that would be used in a high level fantasy novel. If you want, you can address the player with "you ...".
     Assume the player doesn't have access to any items, apart from the ones in their inventory. They can't just find / pick up / use things that are not in their inventory!
     Never assume / say that the player has moved somewhere, they will move themselves in this game.
     If they used an item in a way that would consume it, or makes it not available to them anymore, remove it from their inventory, via the inventory action in the json.
@@ -51,6 +51,6 @@ export class NecromancerDoor extends Actor {
 ${message}
 Only respond with json.`
 
-    return await sendMessage(prompt, playerMessage, 'llama3-70b-8192')
+    return await sendMessage(prompt, playerMessage, 'llama-3.1-70b-versatile')
   }
 }

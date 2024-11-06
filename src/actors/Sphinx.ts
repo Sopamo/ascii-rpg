@@ -71,6 +71,6 @@ You respond only with valid json of this structure:
 ${message}
 Only respond with json.`
 
-    return await sendMessage(prompt, currentStatus, 'llama3-70b-8192')
+    return await sendMessage(prompt, currentStatus, 'llama-3.1-70b-versatile')
   }
 }

@@ -66,10 +66,10 @@ export const useMapStore = defineStore('map', {
     return {
       mapRows,
       currentMapCenter: {
-        // x: 12,
-        // y: 12,
-        x: 42,
+        x: 12,
         y: 12,
+        // x: 42,
+        // y: 12,
       },
       mapSize: 24,
     }

@@ -101,27 +101,29 @@ Skills: Arcana, History, Investigation, Nature, Perception, Persuasion
 Items: Inkpen and Parchment, Lute
 Features & Traits:
 Familiarity with Ancient Texts: Poe has a vast knowledge of ancient texts and is proficient in Arcana, History, and Investigation.
-Eloquent Speech: Poe can use his Charisma to persuade othiss, and his words are often laced with wit and humor.
+Eloquent Speech: Poe can use his Charisma to persuade others, and his words are often laced with wit and humor.
 Hunger Pangs: Poe is always hungry and will often interrupt conversations to search for food. He has a weakness for fish and freshly baked bread.
 Unlikely Skills: Poe is surprisingly skilled at playing the lute and has a hidden talent for acrobatics.
-Background Story: Poe was once a beloved companion to a wealthy noble family. He spent his days lounging in the sun-drenched gardens, listening to the family's debates and discussions. As He grew older, Poe became fascinated with the works of ancient philosophers and spent countless hours devouring books on philosophy. He eventually left the noble family to pursue his passion for knowledge, traveling the land to share his wisdom with others.
-Unexpected Things:
-Poe has a secret talent for playing the lute and often breaks into impromptu performances in taverns and inns.
-Despite his refined demeanor, Poe has a hidden fondness for silly cat videos and will often spend hours watching them in his spare time.
-Poe has a mysterious connection to a long-lost ancient text, rumored to hold the secrets of the universe. He is obsessed with finding the text and will stop at nothing to uncover its location.
+Background Story: Poe was once a beloved companion to a wealthy noble family.
+He spent his days lounging in the sun-drenched gardens, listening to the family's debates and discussions.
+As he grew older, Poe became fascinated with the works of ancient philosophers and spent countless hours devouring books on philosophy.
+He eventually left the noble family to pursue his passion for knowledge, traveling the land to share his wisdom with others.
 Assume the player doesn't have access to any items, apart from the ones in their inventory. They can't just find / pick up / use / trade with things that are not in their inventory!
-The player can trade items with Poe, but Poe only trades for things he needs.
+# Various
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
-If fitting the action, you can add (rarely) or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON.
 If the adventurer tries to hurt the cat, Poe dodges and scratches or bites the adventurer in return.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
 ${getInventoryPrompt()}
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
+# Item trading
+The player can trade items with Poe, but Poe only trades for things he needs.
+Poe will trade "the treasure" for a hint on how to get out.
+If, and only if the player has the treasure in their inventory and gives it to poe, he gives them the hint "Speak friend and enter".
 If the player does something that doesnt make sense, or that the cat wouldn't like, make Poe react accordingly.
 You respond only with valid json of this structure:
 {"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}
-You always answers in a clever way that sounds like a very well-read cat, no matter what the player says. You dont want to move away from where you are standing.`
+You always answer in a clever way that sounds like a very well-read cat, no matter what the player says. You dont want to move away from where you are standing.`
   return sendMessage(prompt, userMessage)
 }
 
@@ -173,10 +175,11 @@ x is the player
 ${playerActiveArea().specialThings.join('\n')}`
 }
 
-type AvailableModels = 'llama3-70b-8192' | 'llama3-8b-8192'
+type AvailableModels = 'llama-3.1-70b-versatile' | 'llama3-8b-8192'
 
-export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
+export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama-3.1-70b-versatile') {
   let responseJson
+  // systemPrompt = systemPrompt + "\n" + "respond in german."
   console.log(import.meta.env.VITE_LLM_SERVICE)
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
     responseJson = await sendGeminiMessage(systemPrompt, userMessage)
@@ -241,7 +244,7 @@ async function sendGeminiMessage(systemPrompt: string, userMessage: string) {
   return resultJson
 }
 
-async function sendGroqMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
+async function sendGroqMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama-3.1-70b-versatile') {
   const groq = new Groq({
     apiKey: useSettingsStore().getGroqApiKey(),
     dangerouslyAllowBrowser: true
@@ -257,7 +260,10 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string, model:
         content: userMessage
       }
     ],
-    model
+    model,
+    response_format: {
+      type: "json_object",
+    },
   })
   const responseJson = extractJson(completion.choices[0]?.message?.content)
   console.info({

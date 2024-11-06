@@ -63,7 +63,7 @@ export class GeneralStateUpdater extends Actor {
 It's your job to determine different state updates.
 You respond with json, which contains HP changes, player inventory changes and how much time has passed.
 Estimate how much time has passed by doing what the Dungeon Master said and output that in the JSON in the "minutesPassed" key.
-If fitting the action, you can add or subtract hp, by giving a number between -10 and 10 in the "hpChange" key in the JSON. If you are being hit by anything that would hurt you, you loose HP.
+If fitting the action, you can add or subtract hp, by giving a number between -30 and 10 in the "hpChange" key in the JSON. If you are being hit by anything that would hurt you, you loose HP. Be very strict, e.g. the slightest injury already removes around 5hp, more serious injuries remove significantly more.
 You respond only with valid json of this structure:
 {"minutesPassed": 30, "hpChange": 0}`
 
@@ -81,6 +81,6 @@ Dungeon Master Message:
 ${message}
 Only respond with json.`
 
-    return await sendMessage(prompt, currentStatus, 'llama3-70b-8192')
+    return await sendMessage(prompt, currentStatus, 'llama-3.1-70b-versatile')
   }
 }
