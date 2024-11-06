@@ -4,6 +4,7 @@ import { GeneralStateUpdater } from '@/actors/GeneralStateUpdater'
 import { GandalfStone } from '@/actors/GandalfStone'
 import { Sphinx } from '@/actors/Sphinx'
 import { NecromancerDoor } from '@/actors/NecromancerDoor'
+import { Necromancer } from '@/actors/Necromancer'
 
 export class Lake extends Environment {
   id = 'lake'
@@ -18,5 +19,6 @@ export class Lake extends Environment {
     this.actors.push(new GandalfStone())
     this.actors.push(new Sphinx())
     this.actors.push(new NecromancerDoor())
+    this.actors.push(new Necromancer())
   }
 }

@@ -8,7 +8,8 @@
             <img :src="`/img/herbalistMap.webp`" />
           </template>
           <template v-else-if="cell.specialThing">
-            <img :src="`/img/${cell.specialThing.id}Map.webp`" />
+            <img v-if="cell.specialThing.mapImage" :src="`/img/${cell.specialThing.mapImage}`" />
+            <img v-else :src="`/img/${cell.specialThing.id}Map.webp`" />
           </template>
           <template v-else>
             {{ cell.char }}
@@ -161,7 +162,6 @@ function onAfterMove() {
   let foundThingToTalkTo = false
   surroundingSpecialThingAction((specialThing) => {
     if(specialThing.canTalkTo) {
-      console.log(specialThing)
       foundThingToTalkTo = true
       promptStore.talkingTo = specialThing.id
     }
@@ -179,7 +179,7 @@ onKeyStroke(['s', 'S', 'ArrowDown'], (e) => handleMapKeyInput(e, () => {
     return
   }
   const actor = getActorAt(newX, newY)
-  if(actor) {
+  if(actor && !actor.canPass) {
     return
   }
   playerStore.playerPosition[1]++
@@ -194,7 +194,7 @@ onKeyStroke(['w', 'W', 'ArrowUp'], (e) => handleMapKeyInput(e, () => {
     return
   }
   const actor = getActorAt(newX, newY)
-  if(actor) {
+  if(actor && !actor.canPass) {
     return
   }
   playerStore.playerPosition[1]--
@@ -209,7 +209,7 @@ onKeyStroke(['a', 'A', 'ArrowLeft'], (e) => handleMapKeyInput(e, () => {
     return
   }
   const actor = getActorAt(newX, newY)
-  if(actor) {
+  if(actor && !actor.canPass) {
     return
   }
   playerStore.playerPosition[0]--
@@ -224,7 +224,7 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
     return
   }
   const actor = getActorAt(newX, newY)
-  if(actor) {
+  if(actor && !actor.canPass) {
     return
   }
   playerStore.playerPosition[0]++

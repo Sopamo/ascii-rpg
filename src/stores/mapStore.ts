@@ -68,8 +68,8 @@ export const useMapStore = defineStore('map', {
       currentMapCenter: {
         // x: 12,
         // y: 12,
-        x: 40,
-        y: 36,
+        x: 42,
+        y: 12,
       },
       mapSize: 24,
     }

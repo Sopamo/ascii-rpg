@@ -3,6 +3,8 @@ export class Actor {
   eventHandlers = []
   position: undefined | { x: number, y: number } = undefined
   canTalkTo: boolean = false
+  canPass: boolean = false
+  mapImage: undefined|string = undefined
 
   constructor() {
 

@@ -177,6 +177,7 @@ type AvailableModels = 'llama3-70b-8192' | 'llama3-8b-8192'
 
 export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama3-70b-8192') {
   let responseJson
+  console.log(import.meta.env.VITE_LLM_SERVICE)
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
     responseJson = await sendGeminiMessage(systemPrompt, userMessage)
   } else {
