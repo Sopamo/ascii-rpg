@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { sendDungeonMasterMessage, sendMischievousCatMessage, sendOldLadyMessage } from '@/aiMessage'
+import { sendDungeonMasterMessage } from '@/aiMessage'
 import { events } from '@/events'
 import { acceptHMRUpdate } from "pinia"
 import { getCurrentEnvironment } from '@/environments/Environment'
@@ -41,26 +41,6 @@ export const usePromptStore = defineStore('prompt', {
         })
         this.isLoading = false
         switch(this.talkingTo) {
-          case "oldLady":
-            responseJSON = await sendOldLadyMessage(usePromptStore().prompt)
-            this.updateMemoryFromResponse(responseJSON, 'oldLady')
-            if(responseJSON.response) {
-              events.emit('npcSpoke', {
-                actor: 'oldLady',
-                message: responseJSON.response
-              })
-            }
-            break
-          case "mischievousCat":
-            responseJSON = await sendMischievousCatMessage(usePromptStore().prompt)
-            this.updateMemoryFromResponse(responseJSON, 'mischievousCat')
-            if(responseJSON.response) {
-              events.emit('npcSpoke', {
-                actor: 'mischievousCat',
-                message: responseJSON.response
-              })
-            }
-            break
           default:
             const actor = getCurrentEnvironment().actors.find(actor => actor.id === this.talkingTo)
             if(actor && actor.handlePlayerMessage) {

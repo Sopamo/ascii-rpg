@@ -5,6 +5,8 @@ import { GandalfStone } from '@/actors/GandalfStone'
 import { Sphinx } from '@/actors/Sphinx'
 import { NecromancerDoor } from '@/actors/NecromancerDoor'
 import { Necromancer } from '@/actors/Necromancer'
+import { MischievousCat } from '@/actors/MischievousCat'
+import { OldLady } from '@/actors/OldLady'
 
 export class Lake extends Environment {
   id = 'lake'
@@ -20,5 +22,7 @@ export class Lake extends Environment {
     this.actors.push(new Sphinx())
     this.actors.push(new NecromancerDoor())
     this.actors.push(new Necromancer())
+    this.actors.push(new MischievousCat())
+    this.actors.push(new OldLady())
   }
 }
