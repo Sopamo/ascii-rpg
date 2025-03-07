@@ -6,7 +6,7 @@ export const usePlayerStore = defineStore('player', {
   state() {
     return {
       inventory: [] as string[],
-      playerPosition: [10, 10] as [number, number],
+      playerPosition: [42, 2] as [number, number],
       characterSheet: "",
       statusEffects: [] as StatusEffect[],
       characterId: "",

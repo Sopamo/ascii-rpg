@@ -44,8 +44,9 @@
 ### The Tower
 #### Gorvoth (old man)
 - Mysterious necromancer
-- Tells Poe he revived him in order for him to "actually live"
-- Poe ponders what it means to actually live
+- Tells Echo he revived him in order for him to "actually live"
+- Ask the player what the one thing is they want to do
+- Put that topic into every npc prompt so that they talk with you
 
 
 ### The Wilderness
@@ -98,6 +99,24 @@ A word that means never to perish, always enthralled."
 #### The angry person
 They are angry because their close relative died because of Elara's accident.
 
+#### Marla the Widow
+Marla lost her husband to the dark curse that plagues the town. Her days are now a relentless struggle against grief and decay. Through tearful recollections, she explains to Echo how the curse has drained the hope and vitality from the town, leaving its people to live in desolation.
+
+#### Bram the Cobbler
+Once a celebrated craftsman, Bram now watches his thriving trade crumble before his eyes. The curse has corrupted even the finest materials, rendering his artisan skills useless. In his broken state, Bram recounts the slow deterioration of the town and warns Echo that the price of life under this dark spell is steep and irreversible.
+
+#### Lorin the Beggar
+Lorin wanders the desolate streets, a bitter witness to the decay around him. His voice, tinged with sorrow and resignation, tells Echo the harsh truth of how the curse has exploited the vulnerable, leaving no soul untouched by misery.
+
+### Echo's Final Decision Options
+
+The necromancer reveals that in order to revive Echo, he cast a dark spell over the town, leaving the townspeople truly sick and broken. Echo is then given two choices:
+
+- **Sacrifice His Second Life:**  
+  Echo can choose to sacrifice his second chance at life to lift the curse, thereby healing the townspeople at the cost of his own existence. This tragic sacrifice redeems the town but leaves Echo as a martyr, questioning what real life means.
+
+- **Continue His Second Life:**  
+  Alternatively, Echo may decide to keep his second life, accepting the persistent suffering of the townspeople. This choice allows him to continue living, albeit burdened with guilt and moral ambiguity, opening the door for further quests and redemption efforts.
 
 
 https://notimetoplay.org/engines/ascii-mapper/editor/index.html

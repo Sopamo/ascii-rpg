@@ -4,6 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useMapStore } from '@/stores/mapStore'
 import { usePromptStore } from '@/stores/promptStore'
 import { format } from 'date-fns'
+import OpenAI from 'openai';
 
 import {
   GoogleGenerativeAI,
@@ -119,7 +120,7 @@ ${getLastDungeonMasterMessage()}
 # Item trading
 The player can trade items with Poe, but Poe only trades for things he needs.
 Poe will trade "the treasure" for a hint on how to get out.
-If, and only if the player has the treasure in their inventory and gives it to poe, he gives them the hint "Speak friend and enter".
+If, and only if the player has the treasure from the monster (100 coins) in their inventory and gives it to poe, he gives them the hint "Speak friend and enter". Never reveal the hint otherwise.
 If the player does something that doesnt make sense, or that the cat wouldn't like, make Poe react accordingly.
 You respond only with valid json of this structure:
 {"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}
@@ -184,7 +185,8 @@ export async function sendMessage(systemPrompt: string, userMessage: string, mod
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
     responseJson = await sendGeminiMessage(systemPrompt, userMessage)
   } else {
-    responseJson = await sendGroqMessage(systemPrompt, userMessage, model)
+    responseJson = await sendOpenAIMessage(systemPrompt, userMessage, model)
+    // responseJson = await sendGroqMessage(systemPrompt, userMessage, model)
   }
   console.info({
     systemPrompt,
@@ -242,6 +244,39 @@ async function sendGeminiMessage(systemPrompt: string, userMessage: string) {
   const result = await chatSession.sendMessage(userMessage);
   const resultJson = JSON.parse(result.response.text())
   return resultJson
+}
+
+async function sendOpenAIMessage(systemPrompt: string, userMessage: string, model: string = 'gpt-3.5-turbo') {
+  model = "gpt-4o"
+  const openai = new OpenAI({
+    apiKey: useSettingsStore().getOpenAIApiKey(), // Assuming similar store structure
+    dangerouslyAllowBrowser: true
+  });
+
+  const completion = await openai.chat.completions.create({
+    messages: [
+      {
+        role: 'system',
+        content: systemPrompt
+      },
+      {
+        role: 'user',
+        content: userMessage
+      }
+    ],
+    model,
+    response_format: {
+      type: "json_object"
+    }
+  });
+
+  const responseJson = extractJson(completion.choices[0]?.message?.content);
+  console.info({
+    userMessage,
+    responseJson
+  });
+
+  return responseJson;
 }
 
 async function sendGroqMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama-3.1-70b-versatile') {

@@ -25,9 +25,10 @@ import { usePromptStore } from '@/stores/promptStore'
 import { computed, ref } from 'vue'
 import { onKeyStroke } from '@vueuse/core'
 import { usePlayerStore } from '@/stores/playerStore'
-import { speak } from '@/playAudio'
+import { speak, speakGoogle } from '@/playAudio'
 import { specialThings } from '@/stores/mapStore'
 import { getCurrentEnvironment } from '@/environments/Environment'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 const promptStore = usePromptStore()
 const inputRef = ref<null | HTMLInputElement>(null)
@@ -53,7 +54,7 @@ async function submit() {
   }
   const response = await promptStore.submitPrompt()
   if(response.response) {
-    speak(response.response)
+    speakGoogle(response.response)
   }
   inputRef.value?.focus()
 }
