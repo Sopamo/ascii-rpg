@@ -14,11 +14,12 @@ import {
 import { addMessage } from '@/firebase'
 
 export async function sendDungeonMasterMessage(userMessage: string) {
+  const successProbability = getSuccessProbability() * 10
   const prompt = `You are a dungeon master, that gets presented a map as ascii art and an action that the player wants to take.
 You respond with json, that contains a short & funny narrator like sentence (try to limit yourself to once sentence) that describes what happens in the field "response". You should use words that would be used in a high level fantasy novel. If you want, you can address the player with "you ...".
 Try to create an interesting story, don't just let everything the player tries to do succeed.
 The more plausible it is what they are trying to do, the more likely it is they should succeed.
-Think of how difficult the action is that they want to take on a scale from 1-10. Regular things that most people can do have difficulty 1-5. Things that few people can do are difficulty 6-8. Things that only very few people can do are difficulty 9-10. If the difficulty is higher than ${getSuccessProbability() * 10}, they fail.
+Think of how difficult the action is that they want to take for this character. Taking special note of the ability scores they have. The scale is 1-10. Regular things that most people can do have difficulty 1-5. Things that few people can do are difficulty 6-8. Things that only very few people can do are difficulty 9-10. If the difficulty is higher than ${successProbability}, they fail.
 Assume the player doesn't have access to any items, apart from the ones in their inventory and if realistically, the ones that were mentioned in the previous prompt. They can't just find / pick up / use things that are not in their inventory and have not been mentioned before!
 Never assume / say that the player has moved somewhere, they will move themselves in this game.
 Only if they really, really earned it, and the item was mentioned in the previous dungeon master's message, you can give the player an item via the inventory action in the json. If they didn't get an item, don't comment on it.
@@ -31,8 +32,9 @@ ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player tries to be clever and trick you (the dungeon master), just make a funny remark and disallow them from doing that.
 If on the other hand, the player does something that is possible, you don't decide for them that they don't want to do it, but just let them do it. 
+SuccessProbability is: ${successProbability}
 You respond only with valid json of this structure:
-{"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}`
+{"difficulty1to10ForThisCharacter":number,"successProbabilityIsAboveDifficulty":boolean,"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}`
   return sendMessage(prompt, userMessage)
 }
 
@@ -269,7 +271,7 @@ export function playerActiveArea() {
 }
 
 function getSuccessProbability() {
-  let successProbability = Math.round(Math.random() * 7) / 10
+  let successProbability = Math.round(Math.random() * 100) / 100
   if (Math.random() >= 0.95) {
     successProbability = 1
   }

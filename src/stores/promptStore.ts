@@ -3,6 +3,7 @@ import { sendDungeonMasterMessage } from '@/aiMessage'
 import { events } from '@/events'
 import { acceptHMRUpdate } from "pinia"
 import { getCurrentEnvironment } from '@/environments/Environment'
+import { useToastStore } from './toastStore'
 
 type MessageHistoryEntry = {
   role: 'user' | 'system'
@@ -60,8 +61,29 @@ export const usePromptStore = defineStore('prompt', {
         }
         this.prompt = ''
       } catch (e) {
-        alert('The whole world froze for a second. Nothing happened. Please try again.')
         console.error(e)
+        
+        // Handle rate limit errors
+        if (e.name === 'RateLimitError' || (e.message && e.message.includes('429 Rate limit'))) {
+          const toastStore = useToastStore()
+          
+          // Extract wait time from error message if available
+          let waitTime = ''
+          const waitTimeMatch = e.message.match(/try again in ([\d\.]+)s/i)
+          if (waitTimeMatch && waitTimeMatch[1]) {
+            waitTime = waitTimeMatch[1]
+          }
+          
+          const message = waitTime 
+            ? `Rate limit exceeded. Please wait ${waitTime} seconds before trying again.` 
+            : 'Rate limit exceeded. Please wait a moment before trying again.'
+          
+          toastStore.addToast(message, 'error', 8000)
+        } else {
+          // For other errors, show a generic message
+          const toastStore = useToastStore()
+          toastStore.addToast('The whole world froze for a second. Nothing happened. Please try again.', 'warning', 5000)
+        }
       }
       this.isLoading = false
       return responseJSON

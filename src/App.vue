@@ -11,12 +11,15 @@
     <div class="s-settings-link">
       <router-link to="/settings">⚙️ Settings</router-link>
     </div>
+    
+    <!-- Toast notifications will appear here -->
+    <ToastNotification />
   </div>
 </template>
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-
+import ToastNotification from '@/components/ToastNotification.vue'
 </script>
 
 <style scoped>
