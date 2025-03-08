@@ -24,6 +24,11 @@ const router = createRouter({
           path: '/you-died',
           name: 'dead',
           component: () => import('../views/YouDied.vue')
+        },
+        {
+          path: '/settings',
+          name: 'settings',
+          component: () => import('../views/Settings.vue')
         }
       ]
     },

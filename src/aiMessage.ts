@@ -82,8 +82,7 @@ export function getMapLegend() {
 " is a bush or foliage of some sort
 + is a closed door
 = is a table
-x is the player
-${playerActiveArea().specialThings.join('\n')}`
+x is the player`
 }
 
 type AvailableModels = 'llama-3.1-70b-versatile' | 'llama3-8b-8192'
@@ -95,8 +94,9 @@ export async function sendMessage(systemPrompt: string, userMessage: string, mod
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
     responseJson = await sendGeminiMessage(systemPrompt, userMessage)
   } else {
-    responseJson = await sendOpenAIMessage(systemPrompt, userMessage, model)
-    // responseJson = await sendGroqMessage(systemPrompt, userMessage, model)
+    // responseJson = await sendOpenAIMessage(systemPrompt, userMessage, model)
+    // Uncomment the line below to use Groq instead of OpenAI
+    responseJson = await sendGroqMessage(systemPrompt, userMessage)
   }
   console.info({
     systemPrompt,
@@ -152,8 +152,17 @@ async function sendGeminiMessage(systemPrompt: string, userMessage: string) {
   });
 
   const result = await chatSession.sendMessage(userMessage);
-  const resultJson = JSON.parse(result.response.text())
-  return resultJson
+  const fullResponse = result.response.text();
+  
+  // Print the full response with proper formatting
+  if (fullResponse) {
+    console.log('\n======== FULL MODEL RESPONSE (GEMINI) ========');
+    console.log(fullResponse);
+    console.log('======== END MODEL RESPONSE ========\n');
+  }
+  
+  const resultJson = JSON.parse(fullResponse);
+  return resultJson;
 }
 
 async function sendOpenAIMessage(systemPrompt: string, userMessage: string, model: string = 'gpt-3.5-turbo') {
@@ -180,7 +189,17 @@ async function sendOpenAIMessage(systemPrompt: string, userMessage: string, mode
     }
   });
 
-  const responseJson = extractJson(completion.choices[0]?.message?.content);
+  // Get the full model response
+  const fullResponse = completion.choices[0]?.message?.content;
+  
+  // Print the full response with proper formatting
+  if (fullResponse) {
+    console.log('\n======== FULL MODEL RESPONSE (OPENAI) ========');
+    console.log(fullResponse);
+    console.log('======== END MODEL RESPONSE ========\n');
+  }
+
+  const responseJson = extractJson(fullResponse);
   console.info({
     userMessage,
     responseJson
@@ -189,12 +208,15 @@ async function sendOpenAIMessage(systemPrompt: string, userMessage: string, mode
   return responseJson;
 }
 
-async function sendGroqMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama-3.1-70b-versatile') {
-  const groq = new Groq({
+async function sendGroqMessage(systemPrompt: string, userMessage: string) {
+  // Using OpenAI SDK with Groq's compatibility feature
+  const openai = new OpenAI({
     apiKey: useSettingsStore().getGroqApiKey(),
+    baseURL: "https://api.groq.com/openai/v1",
     dangerouslyAllowBrowser: true
-  })
-  const completion = await groq.chat.completions.create({
+  });
+
+  const completion = await openai.chat.completions.create({
     messages: [
       {
         role: 'system',
@@ -205,17 +227,29 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string, model:
         content: userMessage
       }
     ],
-    model,
-    response_format: {
-      type: "json_object",
-    },
-  })
-  const responseJson = extractJson(completion.choices[0]?.message?.content)
+    model: "qwen-qwq-32b",
+    temperature: 0.6,
+    max_tokens: 4096,
+    top_p: 0.95
+  });
+
+  // Get the full model response
+  const fullResponse = completion.choices[0]?.message?.content;
+  
+  // Print the full response with proper formatting
+  if (fullResponse) {
+    console.log('\n======== FULL MODEL RESPONSE ========');
+    console.log(fullResponse);
+    console.log('======== END MODEL RESPONSE ========\n');
+  }
+
+  const responseJson = extractJson(fullResponse);
   console.info({
     userMessage,
     responseJson
-  })
-  return responseJson
+  });
+
+  return responseJson;
 }
 
 export function getCurrentTime() {

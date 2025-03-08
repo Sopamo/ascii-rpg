@@ -7,6 +7,10 @@
     </header>
 
     <RouterView class="s-page" />
+    
+    <div class="s-settings-link">
+      <router-link to="/settings">⚙️ Settings</router-link>
+    </div>
   </div>
 </template>
 
@@ -27,11 +31,38 @@ header {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  position: relative;
 }
 
 .s-page {
   flex: 1;
   width: 800px;
+}
+
+.s-settings-link {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.s-settings-link a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(17,18,27,0.8) 100%);
+  border-radius: 4px;
+  color: white;
+  text-decoration: none;
+  border: 1px solid #dedede;
+  transition: all 0.2s ease;
+}
+
+.s-settings-link a:hover {
+  background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(17,18,27,1) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 nav {

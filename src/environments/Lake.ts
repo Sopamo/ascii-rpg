@@ -7,6 +7,11 @@ import { NecromancerDoor } from '@/actors/NecromancerDoor'
 import { Necromancer } from '@/actors/Necromancer'
 import { MischievousCat } from '@/actors/MischievousCat'
 import { OldLady } from '@/actors/OldLady'
+import { Boat } from '@/actors/Boat'
+import { SeaMonster } from '@/actors/SeaMonster'
+import { Lorin } from '@/actors/Lorin'
+import { Marla } from '@/actors/Marla'
+import { Bram } from '@/actors/Bram'
 
 export class Lake extends Environment {
   id = 'lake'
@@ -24,5 +29,10 @@ export class Lake extends Environment {
     this.actors.push(new Necromancer())
     this.actors.push(new MischievousCat())
     this.actors.push(new OldLady())
+    this.actors.push(new Boat())
+    this.actors.push(new SeaMonster())
+    this.actors.push(new Lorin())
+    this.actors.push(new Marla())
+    this.actors.push(new Bram())
   }
 }

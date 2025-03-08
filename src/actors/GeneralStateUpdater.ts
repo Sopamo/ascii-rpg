@@ -35,6 +35,7 @@ export class GeneralStateUpdater extends Actor {
 
   async runStep(message: string) {
     const changes = await this.calculateChanges(message)
+    console.log('state changes', changes)
     this.currentUpdates.value = changes
     this.updateTimeFromResponse(changes)
     this.updateHPFromResponse(changes)
@@ -63,7 +64,7 @@ export class GeneralStateUpdater extends Actor {
 It's your job to determine different state updates.
 You respond with json, which contains HP changes, player inventory changes and how much time has passed.
 Estimate how much time has passed by doing what the Dungeon Master said and output that in the JSON in the "minutesPassed" key.
-If fitting the action, you can add or subtract hp, by giving a number between -30 and 10 in the "hpChange" key in the JSON. If you are being hit by anything that would hurt you, you loose HP. Be very strict, e.g. the slightest injury already removes around 5hp, more serious injuries remove significantly more.
+If fitting the action, you can add or subtract hp, by giving a number between -30 and 10 in the "hpChange" key in the JSON. If you are being hit by anything that would hurt you, you loose HP. -1hp would be a scratch or something comparable, -5hp would be a somewhat serious injury, something that draws blood, broken bone, etc. -15hp would be getting stabbed, serious trauma to the head, etc.
 You respond only with valid json of this structure:
 {"minutesPassed": 30, "hpChange": 0}`
 
@@ -79,7 +80,7 @@ Current time:
 ${getCurrentTime()}
 Dungeon Master Message:
 ${message}
-Only respond with json.`
+Only respond with json. Always include all fields in the output json.`
 
     return await sendMessage(prompt, currentStatus, 'llama-3.1-70b-versatile')
   }

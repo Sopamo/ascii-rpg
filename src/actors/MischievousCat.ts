@@ -1,7 +1,6 @@
 import { Actor } from '@/actors/Actor'
 import { events } from '@/events'
 import { reactive } from 'vue'
-import { usePlayerStore } from '@/stores/playerStore'
 import { usePromptStore } from '@/stores/promptStore'
 import { getCommonMetaInfo, getInventoryPrompt, getLastDungeonMasterMessage, sendMessage } from '@/aiMessage'
 
@@ -10,7 +9,7 @@ export class MischievousCat extends Actor {
   label: string = 'Poe'
   eventHandlerSetup = false
   // Position can be adjusted based on where Poe should be in the game
-  position = reactive({ x: 15, y: 10 }) 
+  position = reactive({ x: 10, y: 16 }) 
   canTalkTo = true
   
   async handlePlayerMessage(message: string) {

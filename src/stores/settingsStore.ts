@@ -40,7 +40,23 @@ export const useSettingsStore = defineStore('settings', () => {
     return deepgramApiKey.value
   }
 
-  return { getGroqApiKey, getDeepgramApiKey, getOpenAIApiKey, getGoogleCloudApiKey }
+  // Audio output settings
+  const enableAudioOutput = useStorage('enable-audio-output', true)
+  const audioOutputType = useStorage('audio-output-type', 'local')
+
+  return { 
+    getGroqApiKey, 
+    getDeepgramApiKey, 
+    getOpenAIApiKey, 
+    getGoogleCloudApiKey,
+    // Direct access to the reactive values for the settings page
+    groqApiKey,
+    openAIApiKey,
+    googleCloudApiKey,
+    deepgramApiKey,
+    enableAudioOutput,
+    audioOutputType
+  }
 })
 
 if (import.meta.hot) {

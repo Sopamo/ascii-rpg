@@ -133,3 +133,74 @@ function getGoogleVoiceModel() {
       return 'en-GB-Wavenet-C'
   }
 }
+
+/**
+ * Speaks the given text using the configured audio output method
+ * Uses the settings from the settings store to determine which method to use
+ * @param text The text to speak
+ */
+export const speak = async (text: string): Promise<void> => {
+  const settingsStore = useSettingsStore();
+  
+  // Check if audio output is enabled
+  if (!settingsStore.enableAudioOutput) {
+    return;
+  }
+  
+  // Use the appropriate speech method based on the settings
+  switch (settingsStore.audioOutputType) {
+    case 'deepgram':
+      await speakDeepgram(text);
+      break;
+    case 'google':
+      await speakGoogle(text);
+      break;
+    case 'local':
+    default:
+      speakLocal(text);
+      break;
+  }
+};
+
+/**
+ * Uses the browser's built-in speech synthesis API to speak text
+ * @param text The text to speak
+ */
+const speakLocal = (text: string): void => {
+  if ('speechSynthesis' in window) {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Set voice based on who is talking
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      // Try to find an English voice
+      const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+      
+      if (englishVoices.length > 0) {
+        // Choose different voices based on who is talking
+        switch (usePromptStore().talkingTo) {
+          case "oldLady":
+            // Try to find a female voice
+            const femaleVoice = englishVoices.find(voice => voice.name.includes('Female'));
+            if (femaleVoice) utterance.voice = femaleVoice;
+            break;
+          case "mischievousCat":
+            // Try to find a higher pitched voice
+            utterance.pitch = 1.2;
+            break;
+          default:
+            // Default voice
+            utterance.voice = englishVoices[0];
+            break;
+        }
+      }
+    }
+    
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.warn('Speech synthesis not supported in this browser');
+  }
+};

@@ -2,45 +2,6 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import mapRows from '../assets/map.json'
 import { usePlayerStore } from '@/stores/playerStore'
 
-export const specialThings = {
-  '1': {
-    id: 'oldLady',
-    canTalkTo: true,
-    label: 'old lady',
-    summary: 'Is an old grumpy woman, sitting on a bench. She is willing to give the player a rusty old sword, but only if they bring her a fish, caught from the lake. She doesnt really want to talk about all of that though, because the sword belongs to her missing husband. If she is physically attacked, she viciously hits back.'
-  },
-  '2': {
-    id: 'boat',
-    canTalkTo: false,
-    label: 'boat',
-    summary: 'Is a tiny wooden boat without a sail and without oars. You don\'t want to get in, before you have a way to propel yourself forward in the boat.'
-  },
-  '3': {
-    id: 'seaMonster',
-    canTalkTo: false,
-    label: 'sea monster',
-    summary: 'Is a mighty sea monster, vulnerable against rust. If the player attacks it without a proper weapon it responds by explicitly and seriously injuring them. Hitting it with a rusty sword is super effective though. Hitting it once or twice would kill it. If you do manage to kill it, you get plentyful treasure (+100 coins).'
-  },
-  '4': {
-    id: 'mischievousCat',
-    canTalkTo: true,
-    label: 'cat',
-    summary: 'Is a cat, sitting next to some tables and looking for some food. Really likes to be pet.'
-  }
-}
-
-function getSpecialThings(mapData: string[]): string[] {
-  // TODO: Return relevant actors as well
-  const mapString = mapData.join('')
-  const relevantThings: string[] = []
-  Object.entries(specialThings).forEach(([key, thing]) => {
-    if (mapString.includes(key)) {
-      relevantThings.push(`${key} ${thing.summary} <- Usually the player will refer to this, so make sure to mention it in your response if applicable.`)
-    }
-  })
-  return relevantThings
-}
-
 function getSurroundingCells(map: string[], x: number, y: number, radius: number = 2) {
   const surroundingCells = []
   const start = -1 * radius
@@ -87,8 +48,7 @@ export const useMapStore = defineStore('map', {
       playerRow[activeAreaRadius] = 'x'
       map[activeAreaRadius] = playerRow.join("")
       return {
-        mapString: map.join('\n'),
-        specialThings: getSpecialThings(map)
+        mapString: map.join('\n')
       }
     },
     globalTopLeftMapPosition(state) {

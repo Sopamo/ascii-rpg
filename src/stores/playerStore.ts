@@ -13,6 +13,7 @@ export const usePlayerStore = defineStore('player', {
       currentTime: Math.round(Date.now() / 1000),
       hp: 10,
       maxHp: 10,
+      abilityScores: {} as Record<string, number>,
     }
   },
   getters: {

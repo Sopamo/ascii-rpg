@@ -192,6 +192,17 @@ Dungeon Master Message:
 ${message}
 Only respond with json.`
 
-    return await sendMessage(prompt, currentStatus, "llama-3.1-70b-versatile")
+    console.log('\n======== STATUS EFFECT CHECK REQUEST ========');
+    console.log('Message being analyzed for status effects:', message);
+    console.log('Current status effects:', getCurrentStatusEffects());
+    console.log('======== END STATUS EFFECT CHECK REQUEST ========\n');
+
+    const response = await sendMessage(prompt, currentStatus, "llama-3.1-70b-versatile");
+    
+    console.log('\n======== STATUS EFFECT CHECK RESULT ========');
+    console.log('Status effect changes:', JSON.stringify(response, null, 2));
+    console.log('======== END STATUS EFFECT CHECK RESULT ========\n');
+    
+    return response;
   }
 }

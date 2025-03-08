@@ -9,7 +9,7 @@ export class OldLady extends Actor {
   label: string = 'Agnes'
   eventHandlerSetup = false
   // Position can be adjusted based on where Agnes should be in the game
-  position = reactive({ x: 20, y: 15 }) 
+  position = reactive({ x: 16, y: 9 }) 
   canTalkTo = true
   
   async handlePlayerMessage(message: string) {
@@ -58,7 +58,7 @@ Assume the player doesn't have access to any items, apart from the ones in their
 The player can trade items with Agnes, but Agnes only trades for things she needs.
 If something noteworthy happened, provide an extremely short summary (a few words) that we should commit to memory for the long term game. Put it into the "memorize" key in the json.
 If the player tries to find, pick up, or use in any way an item that is not mentioned and not in their inventory, make them aware of the fact that they don't have that item.
-If the adventurer tries to hurt the lady, she will give them a slap in the face in return and scold them.
+If the adventurer tries to hurt the lady, she will give them a slap in the face in return and scold them. If the player continues, she will escalate accordingly.
 ${getInventoryPrompt()}
 ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}

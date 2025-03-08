@@ -100,10 +100,14 @@ A word that means never to perish, always enthralled."
 They are angry because their close relative died because of Elara's accident.
 
 #### Marla the Widow
-Marla lost her husband to the dark curse that plagues the town. Her days are now a relentless struggle against grief and decay. Through tearful recollections, she explains to Echo how the curse has drained the hope and vitality from the town, leaving its people to live in desolation.
+Marla lost her husband to the dark curse that plagues the town. Her days are now a relentless struggle against grief and decay. Through tearful ("uhu uhu uhu uhu") recollections, she explains to Echo how the curse has drained the hope and vitality from the town, leaving its people to live in desolation.
 
 #### Bram the Cobbler
-Once a celebrated craftsman, Bram now watches his thriving trade crumble before his eyes. The curse has corrupted even the finest materials, rendering his artisan skills useless. In his broken state, Bram recounts the slow deterioration of the town and warns Echo that the price of life under this dark spell is steep and irreversible.
+Bram the Cobbler was once the pride of his town, known for crafting exquisite shoes that attracted customers from far and wide. His shop was a bustling hub, symbolizing his skill and the town's prosperity. However, a mysterious curse struck, causing his hands to shake, his vision to blur, and his materials to decay, effectively destroying his trade. This curse, likely magical in nature, seems to have two effects: it ruined his ability to cobble and induced a profound apathy, making him indifferent to his ruined shop, the townspeople's suffering, and even his own fate.
+Current State and Interactions
+Today, Bram's shop is a shadow of its former self, with dusty shelves, rusted tools, and a floor littered with failed projects. He sits slumped, barely acknowledging visitors, often responding with cynical remarks like, "Looking for shoes? Well, you've come to the right place—if you don't mind them turning to dust after a week." His apathy is evident in his dismissive shrugs and lack of interest in helping others, reflecting a man who has given up on caring about anything or anyone.
+Unexpected Personal Details
+An unexpected layer to Bram's character is his personal life: he was married to Eliza, who left him as his business failed, and he has a daughter, Lily, who sends letters he doesn't open. These unopened letters, piling up and gathering dust, hint at a potential emotional connection the players might exploit to motivate him, adding a poignant depth to his otherwise bleak demeanor.
 
 #### Lorin the Beggar
 Lorin wanders the desolate streets, a bitter witness to the decay around him. His voice, tinged with sorrow and resignation, tells Echo the harsh truth of how the curse has exploited the vulnerable, leaving no soul untouched by misery.
@@ -144,3 +148,7 @@ npm install
 ```sh
 npm run dev
 ```
+
+
+mysterious necromancer pixelsprite pixel art sprite sheet with 4 frames in a grid 8bit, pokemon style, big pixels, no details, grid white background
+https://console.cloud.google.com/vertex-ai/studio/vision?inv=1&invt=Abrdxg&project=brotheld-b8a8a

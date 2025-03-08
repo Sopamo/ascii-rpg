@@ -25,8 +25,7 @@ import { usePromptStore } from '@/stores/promptStore'
 import { computed, ref } from 'vue'
 import { onKeyStroke } from '@vueuse/core'
 import { usePlayerStore } from '@/stores/playerStore'
-import { speak, speakGoogle } from '@/playAudio'
-import { specialThings } from '@/stores/mapStore'
+import { speak } from '@/playAudio'
 import { getCurrentEnvironment } from '@/environments/Environment'
 import { useSettingsStore } from '@/stores/settingsStore'
 
@@ -54,7 +53,7 @@ async function submit() {
   }
   const response = await promptStore.submitPrompt()
   if(response.response) {
-    speakGoogle(response.response)
+    speak(response.response)
   }
   inputRef.value?.focus()
 }
@@ -62,10 +61,6 @@ async function submit() {
 const talkingToLabel = computed(() => {
   if(!promptStore.talkingTo) {
     return null
-  }
-  const specialThing = Object.values(specialThings).find(thing => thing.id === promptStore.talkingTo)
-  if(specialThing) {
-    return specialThing.label
   }
   const specialThingActor = getCurrentEnvironment().actors.find(actor => actor.id === promptStore.talkingTo)
   if(specialThingActor) {

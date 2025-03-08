@@ -32,7 +32,7 @@
 import { onKeyStroke } from '@vueuse/core'
 import { usePromptStore } from '@/stores/promptStore'
 import { usePlayerStore } from '@/stores/playerStore'
-import { specialThings, useMapStore } from '@/stores/mapStore'
+import { useMapStore } from '@/stores/mapStore'
 import Inventory from '@/components/Inventory.vue'
 import { computed, ref, watch } from 'vue'
 import { format } from 'date-fns'
@@ -114,9 +114,6 @@ function getActorAt(globalX: number, globalY: number) {
 }
 
 function getSpecialThing(char: string, globalX: number, globalY: number) {
-  if(Object.keys(specialThings).includes(char)) {
-    return specialThings[char]
-  }
   const actor = getActorAt(globalX, globalY)
   if(actor) {
     return actor
