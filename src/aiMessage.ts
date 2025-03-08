@@ -3,8 +3,10 @@ import Groq from 'groq-sdk'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useMapStore } from '@/stores/mapStore'
 import { usePromptStore } from '@/stores/promptStore'
+import { useToastStore } from '@/stores/toastStore'
 import { format } from 'date-fns'
 import OpenAI from 'openai';
+import { APIError } from 'openai';
 
 import {
   GoogleGenerativeAI,
@@ -218,39 +220,98 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string) {
     dangerouslyAllowBrowser: true
   });
 
-  const completion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: 'system',
-        content: systemPrompt
-      },
-      {
-        role: 'user',
-        content: userMessage
-      }
-    ],
-    model: "qwen-qwq-32b",
-    temperature: 0.6,
-    max_tokens: 4096,
-    top_p: 0.95
-  });
-
-  // Get the full model response
-  const fullResponse = completion.choices[0]?.message?.content;
+  // Maximum number of retries
+  const MAX_RETRIES = 5;
+  // Initial delay in milliseconds (1 second)
+  const INITIAL_RETRY_DELAY = 1000;
   
-  // Print the full response with proper formatting
-  if (fullResponse) {
-    console.log('\n======== FULL MODEL RESPONSE ========');
-    console.log(fullResponse);
-    console.log('======== END MODEL RESPONSE ========\n');
+  let retryCount = 0;
+  let responseJson;
+  let toastShown = false; // Track if we've shown a toast for this retry loop
+  
+  while (retryCount <= MAX_RETRIES) {
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: userMessage
+          }
+        ],
+        model: "qwen-qwq-32b",
+        temperature: 0.6,
+        max_tokens: 4096,
+        top_p: 0.95
+      });
+
+      // Get the full model response
+      const fullResponse = completion.choices[0]?.message?.content;
+      
+      // Print the full response with proper formatting
+      if (fullResponse) {
+        console.log('\n======== FULL MODEL RESPONSE ========');
+        console.log(fullResponse);
+        console.log('======== END MODEL RESPONSE ========\n');
+      }
+
+      responseJson = extractJson(fullResponse);
+      console.info({
+        userMessage,
+        responseJson
+      });
+      
+      // Success! Break out of the retry loop
+      break;
+      
+    } catch (error) {
+      // Check if it's a rate limit error (429)
+      if (error instanceof APIError && error.status === 429) {
+        // Show toast notification for rate limit error only once per retry loop
+        if (!toastShown) {
+          const toastStore = useToastStore();
+          
+          // Extract wait time from error message if available
+          let waitTime = '';
+          const waitTimeMatch = error.message.match(/try again in ([\d\.]+)s/i);
+          if (waitTimeMatch && waitTimeMatch[1]) {
+            waitTime = waitTimeMatch[1];
+          }
+          
+          const message = waitTime 
+            ? `Rate limit exceeded. Please wait ${waitTime} seconds before trying again.` 
+            : 'Rate limit exceeded. Please wait a moment before trying again.';
+          
+          toastStore.addToast(message, 'error', 8000);
+          toastShown = true; // Mark that we've shown the toast for this retry loop
+        }
+        
+        // If we've reached the maximum number of retries, throw the error
+        if (retryCount >= MAX_RETRIES) {
+          console.error(`Maximum retries (${MAX_RETRIES}) reached for rate limit error:`, error);
+          throw error;
+        }
+        
+        // Calculate exponential backoff with jitter
+        // 2^retryCount * INITIAL_RETRY_DELAY + random jitter
+        const delay = Math.pow(2, retryCount) * INITIAL_RETRY_DELAY + Math.random() * 1000;
+        console.log(`Rate limit hit. Retrying in ${delay / 1000} seconds... (Attempt ${retryCount + 1} of ${MAX_RETRIES})`);
+        
+        // Wait for the calculated delay
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Increment retry counter and try again
+        retryCount++;
+      } else {
+        // For other errors, just throw them to be handled by the caller
+        throw error;
+      }
+    }
   }
-
-  const responseJson = extractJson(fullResponse);
-  console.info({
-    userMessage,
-    responseJson
-  });
-
+  
   return responseJson;
 }
 

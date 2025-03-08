@@ -5,7 +5,7 @@
       <div v-for="row in mapRows" class="s-row">
         <div :class="getClass(cell.char)" @mouseover="setActiveCell(cell.char)" v-for="cell in row" class="s-cell">
           <template v-if="cell.isPlayerPosition">
-            <img :src="`/img/herbalistMap.webp`" />
+            <img :src="`/img/herbalistMap.webp`" style="width: 32px; height: 32px;" />
           </template>
           <template v-else-if="cell.specialThing">
             <img v-if="cell.specialThing.mapImage" :src="`/img/${cell.specialThing.mapImage}`" />
@@ -289,15 +289,29 @@ onKeyStroke(['d', 'D', 'ArrowRight'], (e) => handleMapKeyInput(e, () => {
   background: #1c2d22;
   color: #2e5638;
 }
+.s-row {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
 .s-cell {
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
+  position: relative;
 }
+
 .s-cell img {
   width: 32px;
-  height: 32px;
+  height: auto;
   object-fit: cover;
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
+
+
 
 .s-sidebar {
   position: absolute;
