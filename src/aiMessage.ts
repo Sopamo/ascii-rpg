@@ -9,11 +9,6 @@ import { format } from 'date-fns'
 import OpenAI from 'openai';
 import { APIError } from 'openai';
 
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold
-} from '@google/generative-ai'
 import { addMessage } from '@/firebase'
 
 export async function sendDungeonMasterMessage(userMessage: string) {
@@ -93,21 +88,13 @@ x is the player`
 type AvailableModels = 'llama-3.1-70b-versatile' | 'llama3-8b-8192'
 
 export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama-3.1-70b-versatile') {
-  let responseJson
   let fullResponse = ''
   // systemPrompt = systemPrompt + "\n" + "respond in german."
-  console.log(import.meta.env.VITE_LLM_SERVICE)
-  if (import.meta.env.VITE_LLM_SERVICE === 'google') {
-    const result = await sendGeminiMessage(systemPrompt, userMessage)
-    responseJson = result.json
-    fullResponse = result.fullResponse
-  } else {
-    // const result = await sendOpenAIMessage(systemPrompt, userMessage, model)
-    // Uncomment the line below to use Groq instead of OpenAI
-    const result = await sendGroqMessage(systemPrompt, userMessage)
-    responseJson = result.json
-    fullResponse = result.fullResponse
-  }
+  // const result = await sendOpenAIMessage(systemPrompt, userMessage, model)
+  // Uncomment the line below to use Groq instead of OpenAI
+  const result = await sendGroqMessage(systemPrompt, userMessage)
+  const responseJson = result.json
+  fullResponse = result.fullResponse
   console.info('model response', {
     systemPrompt,
     userMessage,
@@ -124,61 +111,6 @@ export async function sendMessage(systemPrompt: string, userMessage: string, mod
   return responseJson as Record<string, any>
 }
 
-async function sendGeminiMessage(systemPrompt: string, userMessage: string) {
-  const apiKey = import.meta.env.VITE_GEMINI_KEY;
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-latest",
-    systemInstruction: systemPrompt,
-  });
-
-  const generationConfig = {
-    temperature: 0,
-    topP: 0.95,
-    topK: 64,
-    maxOutputTokens: 8192,
-    responseMimeType: "application/json",
-  };
-
-  const safetySettings = [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_NONE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_NONE,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-  ];
-  const chatSession = model.startChat({
-    generationConfig,
-    safetySettings,
-  });
-
-  const result = await chatSession.sendMessage(userMessage);
-  const fullResponse = result.response.text();
-  
-  // Print the full response with proper formatting
-  if (fullResponse) {
-    console.log('\n======== FULL MODEL RESPONSE (GEMINI) ========');
-    console.log(fullResponse);
-    console.log('======== END MODEL RESPONSE ========\n');
-  }
-  
-  const resultJson = JSON.parse(fullResponse);
-  return {
-    json: resultJson,
-    fullResponse
-  };
-}
 
 async function sendOpenAIMessage(systemPrompt: string, userMessage: string, model: string = 'gpt-3.5-turbo') {
   model = "gpt-4o"
