@@ -1,5 +1,4 @@
 import { usePlayerStore } from '@/stores/playerStore'
-import Groq from 'groq-sdk'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useMapStore } from '@/stores/mapStore'
 import { usePromptStore } from '@/stores/promptStore'
@@ -12,12 +11,12 @@ import { APIError } from 'openai';
 import { addMessage } from '@/firebase'
 
 export async function sendDungeonMasterMessage(userMessage: string) {
-  const successProbability = Math.round(getSuccessProbability() * 6)
+  const playerAbilityScore = getAbilityScore()
   const prompt = `You are a dungeon master, that gets presented a map as ascii art and an action that the player wants to take.
 You respond with json, that contains a short & funny narrator like sentence (try to limit yourself to once sentence) that describes what happens in the field "response". You should use words that would be used in a high level fantasy novel. If you want, you can address the player with "you ...".
 Try to create an interesting story, don't just let everything the player tries to do succeed.
 The more plausible it is what they are trying to do, the more likely it is they should succeed.
-Think of how difficult the action is that they want to take for this character. Taking special note of the ability scores they have. The scale is 1-6. Regular things that most people can do have difficulty 1-2. Things that few people can do have difficulty 3-5. Things that only very few people can do have difficulty 6. If the difficulty is higher than ${successProbability}, they fail.
+Think of how difficult the action is that they want to take for this character. The scale is 1-12. Regular things that most people can do have difficulty 1-4. Things that few people can do have difficulty 5-8. Things that only very few people can do have difficulty 9-12. The player's ability score for this action is ${playerAbilityScore}. If the difficulty is higher than the player's ability score, they fail.
 Assume the player doesn't have access to any items, apart from the ones in their inventory and if realistically, the ones that were mentioned in the previous prompt. They can't just find / pick up / use things that are not in their inventory and have not been mentioned before!
 Never assume / say that the player has moved somewhere, they will move themselves in this game.
 Only if they really, really earned it, and the item was mentioned in the previous dungeon master's message, you can give the player an item via the inventory action in the json. If they didn't get an item, don't comment on it.
@@ -30,9 +29,9 @@ ${getCommonMetaInfo()}
 ${getLastDungeonMasterMessage()}
 If the player tries to be clever and trick you (the dungeon master), just make a funny remark and disallow them from doing that.
 If on the other hand, the player does something that is possible, you don't decide for them that they don't want to do it, but just let them do it. 
-SuccessProbability is: ${successProbability}
+Player's ability score for this action is: ${playerAbilityScore}
 You respond only with valid json of this structure:
-{"difficulty1to10ForThisCharacter":number,"successProbabilityIsAboveDifficulty":boolean,"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}`
+{"difficulty1to12ForThisAction":number,"playerSucceeds":boolean,"response":"","memorize":"","inventoryActions":{"add": ["itemName"], "remove": ["itemName"]}}`
   return sendMessage(prompt, userMessage)
 }
 
@@ -158,7 +157,7 @@ async function sendOpenAIMessage(systemPrompt: string, userMessage: string, mode
   };
 }
 
-async function sendGroqMessage(systemPrompt: string, userMessage: string) {
+export async function sendGroqMessage(systemPrompt: string, userMessage: string, model: string = "qwen-qwq-32b") {
   // Using OpenAI SDK with Groq's compatibility feature
   const openai = new OpenAI({
     apiKey: useSettingsStore().getGroqApiKey(),
@@ -189,7 +188,7 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string) {
             content: userMessage
           }
         ],
-        model: "qwen-qwq-32b",
+        model,
         temperature: 0.6,
         max_tokens: 4096,
         top_p: 0.95
@@ -281,18 +280,47 @@ export function playerActiveArea() {
   return useMapStore().playerActiveArea
 }
 
-function getSuccessProbability() {
-  let successProbability = Math.round(Math.random() * 100) / 100
-  if (Math.random() >= 0.95) {
-    successProbability = 1
-  }
-  console.log({ successProbability })
-  
-  // Store the success probability in the dice store
+function getAbilityScore() {
   const diceStore = useDiceStore()
-  diceStore.setSuccessProbability(successProbability)
+  const playerStore = usePlayerStore()
   
-  return successProbability
+  // If we have an ability check result, use that to calculate the ability score
+  if (diceStore.abilityCheckResult) {
+    const { ability, diceValue } = diceStore.abilityCheckResult
+    const abilityScore = playerStore.abilityScores[ability] || 0
+    
+    // Calculate the total score: dice roll (1-6) + ability score
+    const totalScore = diceValue + abilityScore
+    console.log(`Ability check: ${ability}, Dice: ${diceValue}, Ability score: ${abilityScore}, Total: ${totalScore}`)
+    return totalScore
+  }
+  
+  // If no ability check is active but we have a dice value, use a generic approach
+  if (diceStore.diceValue > 0) {
+    // Use the dice value as a base score
+    const diceValue = diceStore.diceValue
+    // Add a generic ability modifier (average of all abilities)
+    const abilities = Object.values(playerStore.abilityScores)
+    const avgAbilityScore = abilities.length > 0 
+      ? Math.floor(abilities.reduce((sum, score) => sum + score, 0) / abilities.length) 
+      : 3 // Default average ability score
+    
+    const totalScore = diceValue + avgAbilityScore
+    console.log(`Generic check - Dice: ${diceValue}, Avg ability: ${avgAbilityScore}, Total: ${totalScore}`)
+    return totalScore
+  }
+  
+  // Fallback to a random ability score if no dice value is available
+  const randomDiceRoll = Math.floor(Math.random() * 6) + 1 // Random 1-6
+  const randomAbilityScore = Math.floor(Math.random() * 5) + 1 // Random 1-5
+  const totalScore = randomDiceRoll + randomAbilityScore
+  
+  console.log(`Random ability score: Dice ${randomDiceRoll} + Ability ${randomAbilityScore} = ${totalScore}`)
+  
+  // Store the dice value
+  diceStore.diceValue = randomDiceRoll
+  
+  return totalScore
 }
 
 export function getLastDungeonMasterMessage() {
@@ -305,6 +333,9 @@ export function getLastDungeonMasterMessage() {
 }
 
 function extractJson(str: string): any {
+  // Remove content between <think> and </think> tags
+  str = str.replace(/<think>[\s\S]*?<\/think>/g, '');
+
   const stack = []
   let jsonStart = -1
   let jsonEnd = -1

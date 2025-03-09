@@ -14,6 +14,10 @@ export const usePlayerStore = defineStore('player', {
       hp: 10,
       maxHp: 10,
       abilityScores: {} as Record<string, number>,
+      pendingAbilityCheck: null as null | {
+        ability: string,
+        reasoning: string
+      },
     }
   },
   getters: {
@@ -22,6 +26,18 @@ export const usePlayerStore = defineStore('player', {
         return 'Inventory is empty. Just a bit of dust and a few tiny breadcrumbs.'
       }
       return this.inventory.join('\n')
+    }
+  },
+  actions: {
+    setPendingAbilityCheck(ability: string | null, reasoning: string | null) {
+      if (ability && reasoning) {
+        this.pendingAbilityCheck = { ability, reasoning }
+      } else {
+        this.pendingAbilityCheck = null
+      }
+    },
+    clearPendingAbilityCheck() {
+      this.pendingAbilityCheck = null
     }
   }
 })
