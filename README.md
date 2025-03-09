@@ -154,3 +154,135 @@ mysterious necromancer pixelsprite pixel art sprite sheet with 4 frames in a gri
 https://console.cloud.google.com/vertex-ai/studio/vision?inv=1&invt=Abrdxg&project=brotheld-b8a8a
 
 https://photo2pixel.co/
+
+
+### Dice implementation
+1. Set Up Physics Environment
+World: Create CANNON.World, set gravity y = -9.82.
+Ground: Add static CANNON.Body with CANNON.Plane.
+Dice: Add dynamic CANNON.Body with CANNON.Box (size 1), mass 1, initial position y = 5.
+Materials: Set friction 0.3, restitution 0.5 for dice and ground, add contact material.
+Code:
+
+javascript
+
+Collapse
+
+Wrap
+
+Copy
+import * as CANNON from 'cannon-es';
+
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0);
+
+const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane() });
+world.addBody(groundBody);
+
+const diceBody = new CANNON.Body({ mass: 1, shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)) });
+diceBody.position.set(0, 5, 0);
+world.addBody(diceBody);
+
+const material = new CANNON.Material({ friction: 0.3, restitution: 0.5 });
+diceBody.material = groundBody.material = material;
+world.addContactMaterial(new CANNON.ContactMaterial(material, material, { friction: 0.3, restitution: 0.5 }));
+2. Define Target Orientations
+Quaternions: Map each face (1–6) to a quaternion where that face is up (e.g., face 1 up: identity, face 6 up: 180° around X).
+Code:
+
+javascript
+
+Collapse
+
+Wrap
+
+Copy
+const targetQuaternions = {
+  1: new CANNON.Quaternion().setFromEuler(0, 0, 0),
+  2: new CANNON.Quaternion().setFromEuler(Math.PI / 2, 0, 0),
+  3: new CANNON.Quaternion().setFromEuler(0, Math.PI / 2, 0),
+  4: new CANNON.Quaternion().setFromEuler(0, -Math.PI / 2, 0),
+  5: new CANNON.Quaternion().setFromEuler(-Math.PI / 2, 0, 0),
+  6: new CANNON.Quaternion().setFromEuler(Math.PI, 0, 0),
+};
+3. Simulate Dice Roll
+Reset: Set dice position y = 5, clear velocities.
+Throw: Apply initial force (e.g., z = -5) and torque (e.g., x = 1, y = 2, z = 3).
+Step: Run world.step(fixedTimeStep) in animation loop.
+Code:
+
+javascript
+
+Collapse
+
+Wrap
+
+Copy
+function startRoll() {
+  diceBody.position.set(0, 5, 0);
+  diceBody.velocity.set(0, 0, 0);
+  diceBody.angularVelocity.set(0, 0, 0);
+  diceBody.applyForce(new CANNON.Vec3(0, 0, -5), diceBody.position);
+  diceBody.applyTorque(new CANNON.Vec3(1, 2, 3));
+}
+4. Apply Corrective Torque
+Detect Settling: Check if velocity.length() and angularVelocity.length() < 0.1.
+PD Control:
+Compute quaternion difference: Q_diff = Q_target * Q_current.inverse().
+Extract axis and angle from Q_diff.
+Apply torque: torque = k_p * angle * axis - k_d * angular_velocity (k_p = 0.5, k_d = 0.1).
+Code:
+
+javascript
+
+Collapse
+
+Wrap
+
+Copy
+function applyCorrection(desiredFace) {
+  if (diceBody.velocity.length() < 0.1 && diceBody.angularVelocity.length() < 0.1) {
+    const Q_target = targetQuaternions[desiredFace];
+    const Q_current = diceBody.quaternion;
+    const Q_diff = Q_target.mult(Q_current.inverse());
+    const [axis, angle] = Q_diff.toAxisAngle();
+    if (angle > 0.01) {
+      const torque = axis.scale(0.5 * angle).vsub(diceBody.angularVelocity.scale(0.1));
+      diceBody.applyTorque(torque);
+    }
+  }
+}
+5. Run Simulation
+Loop: Use requestAnimationFrame, step world, apply correction, stop when velocities < 0.01.
+Code:
+
+javascript
+
+Collapse
+
+Wrap
+
+Copy
+function rollDice(desiredFace) {
+  startRoll();
+  const fixedTimeStep = 1 / 60;
+  let lastTime;
+  function simulate(time) {
+    const dt = lastTime ? (time - lastTime) / 1000 : 0;
+    world.step(fixedTimeStep, dt);
+    applyCorrection(desiredFace);
+    if (diceBody.velocity.length() < 0.01 && diceBody.angularVelocity.length() < 0.01) {
+      console.log(`Dice stopped with face ${desiredFace} up`);
+    } else {
+      requestAnimationFrame(simulate);
+    }
+    lastTime = time;
+  }
+  requestAnimationFrame(simulate);
+}
+
+rollDice(5); // Roll with face 5 up
+Fine-Tuning
+Adjust k_p, k_d, and thresholds for smoothness.
+Apply torque only near rest for realism.
+Pair with Three.js for visualization.
