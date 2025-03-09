@@ -4,6 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useMapStore } from '@/stores/mapStore'
 import { usePromptStore } from '@/stores/promptStore'
 import { useToastStore } from '@/stores/toastStore'
+import { useDiceStore } from '@/stores/diceStore'
 import { format } from 'date-fns'
 import OpenAI from 'openai';
 import { APIError } from 'openai';
@@ -16,12 +17,12 @@ import {
 import { addMessage } from '@/firebase'
 
 export async function sendDungeonMasterMessage(userMessage: string) {
-  const successProbability = getSuccessProbability() * 10
+  const successProbability = Math.round(getSuccessProbability() * 6)
   const prompt = `You are a dungeon master, that gets presented a map as ascii art and an action that the player wants to take.
 You respond with json, that contains a short & funny narrator like sentence (try to limit yourself to once sentence) that describes what happens in the field "response". You should use words that would be used in a high level fantasy novel. If you want, you can address the player with "you ...".
 Try to create an interesting story, don't just let everything the player tries to do succeed.
 The more plausible it is what they are trying to do, the more likely it is they should succeed.
-Think of how difficult the action is that they want to take for this character. Taking special note of the ability scores they have. The scale is 1-10. Regular things that most people can do have difficulty 1-5. Things that few people can do are difficulty 6-8. Things that only very few people can do are difficulty 9-10. If the difficulty is higher than ${successProbability}, they fail.
+Think of how difficult the action is that they want to take for this character. Taking special note of the ability scores they have. The scale is 1-6. Regular things that most people can do have difficulty 1-2. Things that few people can do have difficulty 3-5. Things that only very few people can do have difficulty 6. If the difficulty is higher than ${successProbability}, they fail.
 Assume the player doesn't have access to any items, apart from the ones in their inventory and if realistically, the ones that were mentioned in the previous prompt. They can't just find / pick up / use things that are not in their inventory and have not been mentioned before!
 Never assume / say that the player has moved somewhere, they will move themselves in this game.
 Only if they really, really earned it, and the item was mentioned in the previous dungeon master's message, you can give the player an item via the inventory action in the json. If they didn't get an item, don't comment on it.
@@ -93,23 +94,30 @@ type AvailableModels = 'llama-3.1-70b-versatile' | 'llama3-8b-8192'
 
 export async function sendMessage(systemPrompt: string, userMessage: string, model: AvailableModels = 'llama-3.1-70b-versatile') {
   let responseJson
+  let fullResponse = ''
   // systemPrompt = systemPrompt + "\n" + "respond in german."
   console.log(import.meta.env.VITE_LLM_SERVICE)
   if (import.meta.env.VITE_LLM_SERVICE === 'google') {
-    responseJson = await sendGeminiMessage(systemPrompt, userMessage)
+    const result = await sendGeminiMessage(systemPrompt, userMessage)
+    responseJson = result.json
+    fullResponse = result.fullResponse
   } else {
-    // responseJson = await sendOpenAIMessage(systemPrompt, userMessage, model)
+    // const result = await sendOpenAIMessage(systemPrompt, userMessage, model)
     // Uncomment the line below to use Groq instead of OpenAI
-    responseJson = await sendGroqMessage(systemPrompt, userMessage)
+    const result = await sendGroqMessage(systemPrompt, userMessage)
+    responseJson = result.json
+    fullResponse = result.fullResponse
   }
-  console.info({
+  console.info('model response', {
     systemPrompt,
     userMessage,
+    fullResponse,
     responseJson
   })
   addMessage({
     systemPrompt,
     userMessage,
+    fullResponse,
     responseJson,
   })
   updateInventoryFromResponse(responseJson)
@@ -166,7 +174,10 @@ async function sendGeminiMessage(systemPrompt: string, userMessage: string) {
   }
   
   const resultJson = JSON.parse(fullResponse);
-  return resultJson;
+  return {
+    json: resultJson,
+    fullResponse
+  };
 }
 
 async function sendOpenAIMessage(systemPrompt: string, userMessage: string, model: string = 'gpt-3.5-turbo') {
@@ -209,7 +220,10 @@ async function sendOpenAIMessage(systemPrompt: string, userMessage: string, mode
     responseJson
   });
 
-  return responseJson;
+  return {
+    json: responseJson,
+    fullResponse: fullResponse || ''
+  };
 }
 
 async function sendGroqMessage(systemPrompt: string, userMessage: string) {
@@ -227,6 +241,7 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string) {
   
   let retryCount = 0;
   let responseJson;
+  let fullResponse = '';
   let toastShown = false; // Track if we've shown a toast for this retry loop
   
   while (retryCount <= MAX_RETRIES) {
@@ -249,7 +264,7 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string) {
       });
 
       // Get the full model response
-      const fullResponse = completion.choices[0]?.message?.content;
+      fullResponse = completion.choices[0]?.message?.content || '';
       
       // Print the full response with proper formatting
       if (fullResponse) {
@@ -312,7 +327,10 @@ async function sendGroqMessage(systemPrompt: string, userMessage: string) {
     }
   }
   
-  return responseJson;
+  return {
+    json: responseJson,
+    fullResponse
+  };
 }
 
 export function getCurrentTime() {
@@ -337,6 +355,11 @@ function getSuccessProbability() {
     successProbability = 1
   }
   console.log({ successProbability })
+  
+  // Store the success probability in the dice store
+  const diceStore = useDiceStore()
+  diceStore.setSuccessProbability(successProbability)
+  
   return successProbability
 }
 

@@ -8,7 +8,7 @@ const firebaseConfig = {
   storageBucket: "asciirpg-a1438.appspot.com",
   messagingSenderId: "639775216192",
   appId: "1:639775216192:web:b49c3cc838f416f48e05a5"
-};
+}; 
 
 // Initialize Firebase
 const defaultProject = initializeApp(firebaseConfig);
@@ -17,8 +17,8 @@ export function getDb() {
   return getFirestore(defaultProject)
 }
 
-export async function addMessage(message: {systemPrompt: string, userMessage: string, responseJson: any}) {
-  // Add a new document in collection "cities"
+export async function addMessage(message: {systemPrompt: string, userMessage: string, fullResponse: string, responseJson: any}) {
+  // Add a new document in collection "messages"
   const doc = {
     createdAt: serverTimestamp(),
     messages: [
@@ -32,9 +32,9 @@ export async function addMessage(message: {systemPrompt: string, userMessage: st
       },
       {
         role: "system",
-        content: JSON.stringify(message.responseJson)
+        content: message.fullResponse
       },
-    ]
+    ],
   }
   await addDoc(collection(getDb(), "messages"), doc);
 }

@@ -10,6 +10,7 @@
     
     <div class="s-settings-link">
       <router-link to="/settings">⚙️ Settings</router-link>
+      <router-link to="/messages" class="messages-link">📜 Messages</router-link>
     </div>
     
     <!-- Toast notifications will appear here -->
@@ -47,6 +48,9 @@ header {
   bottom: 20px;
   right: 20px;
   z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .s-settings-link a {

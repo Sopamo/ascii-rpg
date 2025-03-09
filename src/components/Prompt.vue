@@ -8,6 +8,9 @@
                :disabled="promptStore.isLoading" type="text" :placeholder="talkingToLabel ? 'What do you want to say / do?' : 'What do you want to do?'"
                v-model="promptStore.prompt" />
       </form>
+      <div v-if="diceStore.diceValue" class="dice-value" :class="'dice-' + diceStore.diceValue">
+        {{ diceStore.diceValue }}
+      </div>
     </div>
     <div class="s-blurMessage">
       <template v-if="promptStore.isFocused">
@@ -28,8 +31,10 @@ import { usePlayerStore } from '@/stores/playerStore'
 import { speak } from '@/playAudio'
 import { getCurrentEnvironment } from '@/environments/Environment'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useDiceStore } from '@/stores/diceStore'
 
 const promptStore = usePromptStore()
+const diceStore = useDiceStore()
 const inputRef = ref<null | HTMLInputElement>(null)
 
 onKeyStroke(['Escape'], (e) => {
@@ -106,4 +111,27 @@ const talkingToLabel = computed(() => {
   font-size: 14px;
   color: gray;
 }
+
+.dice-value {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 18px;
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+  margin-left: 5px;
+}
+
+.dice-1 { background-color: #ff6b6b; }
+.dice-2 { background-color: #ff9e7d; }
+.dice-3 { background-color: #ffda83; }
+.dice-4 { background-color: #b0ff9d; }
+.dice-5 { background-color: #9dceff; }
+.dice-6 { background-color: #c49dff; }
 </style>
